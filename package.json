@@ -1,0 +1,110 @@
+{
+  "name": "mitasco-backend",
+  "version": "1.0.0",
+  "description": "Mitasco Server Application",
+  "scripts": {
+    "start": "node ./app/app.js --harmony-async-await",
+    "watch": "./node_modules/nodemon/bin/nodemon.js ./app/app.js --harmony-async-await",
+    "test": "./node_modules/mocha/bin/mocha ./app/**/*.specs.js ./app/*.specs.js",
+    "coverage": "./node_modules/nyc/bin/nyc.js --reporter=lcov npm test",
+    "watch-test": "./node_modules/nodemon/bin/nodemon.js ./node_modules/mocha/bin/mocha ./app/**/*.specs.js ./app/*.specs.js",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+  },
+  "author": "Mathias Colpaert <colpaert.mathias@gmail.com>",
+  "dependencies": {
+    "bcrypt": "^1.0.2",
+    "body-parser": "^1.17.1",
+    "cors": "^2.8.3",
+    "express": "^4.15.2",
+    "express-validator": "^3.2.0",
+    "http-status-codes": "^1.1.6",
+    "jsonwebtoken": "^7.3.0",
+    "pg": "^6.1.5",
+    "pg-hstore": "^2.3.2",
+    "request": "^2.81.0",
+    "sequelize": "^3.30.4",
+    "umzug": "^2.0.1",
+    "uuid": "^3.0.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^2.13.1",
+    "mocha": "^3.2.0",
+    "nodemon": "^1.11.0",
+    "nyc": "^10.3.2",
+    "should": "^11.2.1",
+    "sinon": "^2.2.0",
+    "supertest": "^3.0.0"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "node": true,
+      "browser": true,
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    },
+    "rules": {
+      "comma-dangle": [
+        "error",
+        "always-multiline"
+      ],
+      "comma-spacing": [
+        "error",
+        {
+          "before": false,
+          "after": true
+        }
+      ],
+      "eol-last": [
+        "error",
+        "always"
+      ],
+      "indent": [
+        "error",
+        4,
+        {
+          "MemberExpression": 1
+        }
+      ],
+      "no-multiple-empty-lines": [
+        "error"
+      ],
+      "no-new-symbol": "error",
+      "no-trailing-spaces": [
+        "error"
+      ],
+      "no-undef": [
+        "error"
+      ],
+      "no-unused-vars": [
+        "error"
+      ],
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
+      "object-shorthand": "error",
+      "prefer-const": 2,
+      "quotes": [
+        "error",
+        "single"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ],
+      "space-in-parens": [
+        "error",
+        "never"
+      ],
+      "strict": [
+        2,
+        "never"
+      ]
+    }
+  }
+}
