@@ -80,10 +80,31 @@ class PricesController{
                     
             request(url, (error, response, body) => {
                 const data = JSON.parse(body);
-                const transactions = data.txs.map(t => {return {
-                    id: t.tx_index,
-                    time: t.time,
-                }});
+                console.log(body);
+
+                var transactions = [];
+
+                for(var i = 0; i < data.txs.length; i++){
+                    const t = data.txs[i];
+                    var transaction = {};
+
+                    transaction.id = t.tx_index;
+                    transaction.time = t.time;
+
+                    const spent = t.inputs.filter(rec => rec.prev_out.addr === address).map(rec => rec.prev_out.value).reduce((prev, curr) => prev + curr, 0) / Math.pow(10, 8);
+                    const received = t.out.filter(rec => rec.addr === address).map(rec => rec.value).reduce((prev, curr) => prev + curr, 0)/ Math.pow(10, 8);
+
+                    if(received > 0){
+                        transaction.value = received;
+                    }
+                    else{
+                        transaction.value = -spent;
+                    }
+                    
+                    transactions.push(transaction);
+                }
+
+                console.log(JSON.stringify(transactions));
                 res.json(transactions);
                 });
         }
