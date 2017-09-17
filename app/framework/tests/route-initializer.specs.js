@@ -4,7 +4,7 @@ const RouteInitializer = require('../route-intializer');
 const FakeController = require('./fake-module/controllers/fake-controller');
 const path = require('path');
 
-describe('RouteInitializer', () => {
+describe.skip('RouteInitializer', () => {
     let routeInitializer;
     let applicationMock;
     let routePrefix = 'api';
