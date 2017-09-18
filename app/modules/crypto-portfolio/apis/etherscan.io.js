@@ -1,4 +1,5 @@
 const theInternet = require('request-promise-native');
+const uuid = require('uuid/v4');
 
 class EtherscanApi{
     constructor(){
@@ -62,7 +63,7 @@ class EtherscanApi{
 
     formatResultData(t){
         var result = {
-            id: t.transactionIndex,
+            id: uuid(),
             time: t.timeStamp * 1000,
             from: t.from,
             to: t.to,

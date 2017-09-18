@@ -1,4 +1,5 @@
 const theInternet = require('request-promise-native');
+const uuid = require('uuid/v4');
 
 class BlockCypher{
     constructor(coin){
@@ -56,7 +57,7 @@ class BlockCypher{
     formatResultData(t, address){
         let transaction = {};
 
-        transaction.id = t.hash;
+        transaction.id = uuid();
         transaction.time = new Date(t.confirmed).getTime();
 
         const spent = t.inputs.filter(rec => rec.addresses.indexOf(address) >= 0).map(rec => rec.output_value).reduce((prev, curr) => prev + curr, 0) / this.conversionFactor;

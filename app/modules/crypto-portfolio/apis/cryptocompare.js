@@ -23,6 +23,10 @@ class CryptoCompareApi{
             dates.push(ts);
         }
 
+        if(toDate.getTime() !== dates[dates.length - 1]){
+            dates.push(toDate.getTime());
+        }
+
         let sorted = dates.sort((x,y) => x - y);
 
         return await this.getPricesForCurrencies(sorted, currencies)
@@ -69,6 +73,7 @@ class CryptoCompareApi{
        
         let cached = CryptoCompareApi.Cache[url];
         if(cached !== undefined){
+            console.log("using cached value for "+ url);
             return cached;
         }
 
@@ -90,7 +95,7 @@ class CryptoCompareApi{
         }
 
         let price = this.formatResultData(ts, currency, data);
-        CryptoCompareApi.Cache = price;
+        CryptoCompareApi.Cache[url] = price;
 
         return price;
     }
