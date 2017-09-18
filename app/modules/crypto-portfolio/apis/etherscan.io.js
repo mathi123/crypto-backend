@@ -1,5 +1,6 @@
 const theInternet = require('request-promise-native');
 const uuid = require('uuid/v4');
+const sleep = require('sleep-promise');
 
 class EtherscanApi{
     constructor(){
@@ -33,14 +34,24 @@ class EtherscanApi{
         
         const options = {
             uri: url,
-            json: true
+            json: true,
+            timeout: 5000
         };
 
         let data = null;
         
         try{
             data = await theInternet(options);
-        }catch(Error){}
+        }catch(Error){
+            if(data === null){
+                try{
+                    await sleep(50);
+                    data = await theInternet(options);
+                }catch(Error){
+                    console.log("retry failed");
+                }
+            }
+        }
 
         if(data === null || data === undefined || data.status != this.okStatus || data.result === null || data.result === undefined){
             console.log(data);

@@ -1,5 +1,7 @@
 const theInternet = require('request-promise-native');
 
+const timeout = ms => new Promise(res => setTimeout(res, ms))
+
 class CryptoCompareApi{
     constructor(){
     }
@@ -79,19 +81,29 @@ class CryptoCompareApi{
 
         const options = {
             uri: url,
-            json: true
+            json: true,
+            timeout: 5000
         };
 
         let data = null;
-        
-        try{
-            data = await theInternet(options);
-        }catch(Error){}
+        let tries = 0;
+
+        while(data === null && tries < 4){
+            try{
+                data = await theInternet(options);
+            }catch(Error){
+                tries++;
+                console.log("retry "+tries);
+                await timeout(100);
+            }
+        }
                     
         if(data === null || data === undefined || data[currency] === null || data[currency] === undefined){
             console.log(url);
             console.log(data);
             throw new Error('Could not get price.');
+        }else{
+            console.log("success: " + url);
         }
 
         let price = this.formatResultData(ts, currency, data);
