@@ -7,37 +7,47 @@ const jwt = require('jsonwebtoken');
 class AuthenticationController{
     constructor(routePrefix){
         this.routePrefix = routePrefix;
+        this.tokenRoute = `/${this.routePrefix}/token`;
     }
 
-    buildRoutes(app) {
+    buildRoutes(app){
+        app.post(this.tokenRoute, (req, res, next) => this.authenticate(req, res).catch(next));
+        return [this.tokenRoute];
+    }
+
+    buildAuthenticationRoutes(app, publicRoutes) {
+        console.info("building authentication route");
+        this.publicRoutes = publicRoutes;
         app.use((req, res, next) => this.checkAuthenticationToken(req, res, next).catch(next));
-        app.post(`/${this.routePrefix}/token`, (req, res, next) => this.authenticate(req, res).catch(next));
     }
 
     async checkAuthenticationToken(req, res, next) {
-        next();
-        return;
-
-        /*if (this.trimRoute(req.url) !== `/${this.routePrefix}/token`) {
+        console.info("checking authentication.");
+        if(this.publicRoutes.indexOf(this.trimRoute(req.url)) === -1){
             const tokenHeader = req.get('authorization');
             if (tokenHeader === null || tokenHeader === undefined) {
+                console.info("no token present");
                 res.sendStatus(HttpStatus.UNAUTHORIZED);
             } else {
+                console.info("token present");
                 const token = tokenHeader.substr(tokenHeader.indexOf(' ') + 1);
-
                 const valid = await this.verifyToken(token);
-
+    
                 if (valid) {
-                    req.userId = this.getUserIdFromToken(token);
+                    let payload = this.getTokenPayload(token);
+                    console.info("token payload: "+JSON.stringify(payload));
 
+                    req.userId = payload.sub;
+                    req.isAdmin = payload.adm;
+    
                     next();
                 } else {
                     res.sendStatus(HttpStatus.UNAUTHORIZED);
                 }
             }
-        } else {
+        }else{
             next();
-        }*/
+        }        
     }
 
     async authenticate(req, res) {
@@ -58,7 +68,7 @@ class AuthenticationController{
             if (!isValid) {
                 res.sendStatus(HttpStatus.UNAUTHORIZED);
             } else {
-                const bearerHeader = await this.getBearerHeader(user.id);
+                const bearerHeader = await this.getBearerHeader(user);
 
                 res.header('Authorization', bearerHeader);
                 res.sendStatus(HttpStatus.NO_CONTENT);
@@ -66,15 +76,16 @@ class AuthenticationController{
         }
     }
 
-    async getBearerHeader(userId){
-        const payload = this.buildTokenPayload(userId);
+    async getBearerHeader(user){
+        const payload = this.buildTokenPayload(user);
         const token = await jwt.sign(payload, secretKey);
         return this.buildBearerHeaderContent(token);
     }
 
-    buildTokenPayload(userId){
+    buildTokenPayload(user){
         return {
-            sub: userId,
+            sub: user.id,
+            adm: user.isAdmin
         };
     }
 
@@ -86,8 +97,8 @@ class AuthenticationController{
         return jwt.verify(token, secretKey);
     }
 
-    getUserIdFromToken(token) {
-        return jwt.decode(token, secretKey).sub;
+    getTokenPayload(token) {
+        return jwt.decode(token, secretKey);
     }
 
     trimRoute(route){

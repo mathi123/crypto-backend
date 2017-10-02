@@ -27,10 +27,7 @@ class Server{
 
     build() {
         this.initializeExpress();
-
         this.initializeMiddleWares();
-
-
     }
 
     buildFallbackRoute(){

@@ -8,22 +8,38 @@ class UserController{
         this.routePrefix = routePrefix;
     }
 
-    buildRoutes(app) {
-        app.get(`/${this.prefix}/user`, (req, res, next) => this.getAllUsers.catch(next));
-        app.get(`/${this.prefix}/user/:id`, (req, res, next) => this.getUserById.catch(next));
-        app.delete(`/${this.prefix}/user/:id`, (req, res, next) => this.deleteUser.catch(next));
-        app.post(`/${this.prefix}/user`, (req, res, next) => this.createUser.catch(next));
-        app.put(`/${this.prefix}/user/:id`, (req, res, next) => this.updateUser.catch(next));
+    buildRoutes(app){
+        var createUserRoute = `/${this.routePrefix}/user`;
+        console.info("building user route:" + createUserRoute);
+        app.post(createUserRoute, (req, res, next) => this.createUser(req, res).catch(next));
+        return [createUserRoute];
+    }
+
+    buildAuthenticatedRoutes(app) {
+        app.get(`/${this.routePrefix}/user`, (req, res, next) => this.getAllUsers(req, res).catch(next));
+        app.get(`/${this.routePrefix}/user/:id`, (req, res, next) => this.getUserById(req, res).catch(next));
+        app.delete(`/${this.routePrefix}/user/:id`, (req, res, next) => this.deleteUser(req, res).catch(next));
+        app.put(`/${this.routePrefix}/user/:id`, (req, res, next) => this.updateUser(req, res).catch(next));
     }
 
     async getAllUsers(req, res) {
+        if(!req.isAdmin){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
         const users = await models.User.all();
 
-        res.json(users.map(this.userExporter));
+        res.json(users.map(u => this.userExporter(u)));
     }
 
     async getUserById(req, res) {
         const id = req.params.id;
+
+        if(!req.isAdmin && req.userId !== id){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
 
         const user = await models.User.findOne({ id });
 
@@ -36,6 +52,11 @@ class UserController{
 
     async updateUser(req, res) {
         const id = req.params.id;
+        if(req.userId !== id){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
         const userData = req.body;
         const user = await models.User.findOne({ id });
 
@@ -44,11 +65,11 @@ class UserController{
         }else{
             // update user
             const values = {
-                fullName : userData.fullName,
+                name : userData.name,
                 email: userData.email,
             };
 
-            await models.User.update(values, { where: { id }, fields: ['fullName', 'email'] });
+            await models.User.update(values, { where: { id }, fields: ['name', 'email'] });
 
             res.location(`/${this.routePrefix}/user/${ id }`);
             res.sendStatus(HttpStatus.NO_CONTENT);
@@ -56,22 +77,28 @@ class UserController{
     }
 
     async createUser(req, res) {
+        console.info("creating a user.");
         const userData = req.body;
 
         const user = {
             id: uuid(),
-            fullName: userData.fullName,
+            name: userData.name,
             email: userData.email,
             password: await bcrypt.hash(userData.password, 10),
         };
 
         await models.User.create(user);
-
+      
         res.location(`/${this.routePrefix}/user/${ user.id }`);
         res.sendStatus(HttpStatus.CREATED);
     }
 
     async deleteUser(req, res) {
+        if(!req.isAdmin){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return; 
+        }
+
         const id = req.params.id;
 
         await models.User.destroy({ id });
@@ -80,11 +107,16 @@ class UserController{
     }
 
     userExporter(user) {
-        user._links = {
-            self: `/${this.routePrefix}/user/${ user.id }`,
+        return {
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            _links : {
+                self: `/${this.routePrefix}/user/${ user.id }`,
+            }
         };
-
-        return user;
     }
 }
 

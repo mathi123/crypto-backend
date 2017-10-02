@@ -5,6 +5,10 @@ const RouteInitializer = require('./route-intializer');
 const path = require('path');
 const DatabaseMigrator = require('./database-migrator');
 
+// Jobs (temp)
+const synchronizeCoins = require('../modules/crypto-portfolio/apis/bittrex');
+const synchroniseBlocks = require('../modules/crypto-portfolio/apis/ethereum');
+
 class Bootstrapper{
 
     constructor(){
@@ -13,11 +17,13 @@ class Bootstrapper{
 
     async run(configurationOverrides){
         this.loadConfigurationFile(configurationOverrides);
-        //this.initializeOrm();
-        //await this.runMigrations();
-        //this.loadModules();
+        this.initializeOrm();
+        await this.runMigrations();
+        this.loadModules();
         this.createServer();
         this.buildRoutes();
+
+        //await this.startJobs();
 
         return this.server;
     }
@@ -63,6 +69,12 @@ class Bootstrapper{
         const routeInitializer = new RouteInitializer(app, routPrefix);
         const modules = this.configuration.modules;
         modules.forEach((module) => routeInitializer.loadModule(module));
+        routeInitializer.bootstrap(app);
+    }
+
+    async startJobs(){
+        await synchronizeCoins();
+        synchroniseBlocks(this.configuration.ethereumApi);
     }
 }
 

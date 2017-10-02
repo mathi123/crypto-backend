@@ -17,7 +17,7 @@ class CoinController{
         }
     }
 
-    buildRoutes(app){
+    buildAuthenticatedRoutes(app){
         app.get(`/${this.routePrefix}/price`, (req, res, next) => this.getPrices(req, res).catch(next));
         app.get(`/${this.routePrefix}/coin/:currency/:address`, (req, res, next) => this.getTransactions(req, res).catch(next));
     }
@@ -54,6 +54,8 @@ class CoinController{
 
         res.json(transactions);
     }
+
+    
 }
 
 module.exports = CoinController;

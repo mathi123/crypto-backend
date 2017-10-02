@@ -4,16 +4,17 @@
   "debug": true,
   "runMigrationsOnStartUp": true,
   "orm": {
-    "username": "mitasco",
-    "password": "mitasco",
-    "database": "mitasco_db",
+    "username": "postgres",
+    "password": "postgres",
+    "database": "postgres",
     "host": "localhost",
     "port": 5432,
     "dialect": "postgres",
-    "logging": true
+    "logging": false
   },
   "modules": [
     "core",
-    "crypto-portfolio"
-  ]
+    "crypto"
+  ],
+  "ethereumApi": "http://127.0.0.1:8545"
 }

@@ -1,0 +1,12 @@
+[
+    {
+        "id": "8a3c1c07-c423-439e-a981-15bce951a41e",
+        "code": "BuyIn",
+        "description": "Buy in"
+    },
+    {
+        "id": "6ff74916-b96b-408f-9692-48aadbcccd71",
+        "code": "BuyOut",
+        "description": "Buy out"
+    }
+]

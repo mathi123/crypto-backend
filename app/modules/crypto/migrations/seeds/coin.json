@@ -1,0 +1,31 @@
+[
+    {
+        "id": "e69ec785-9c34-49d0-b585-0884d0323863",
+        "code": "BTC",
+        "description": "Bitcoin",
+        "isActive": true,
+        "coinType": "other",
+        "decimals": 9
+    }, {
+        "id": "44e88937-f3fa-40b7-8e4d-b2b19eb04e64",
+        "code": "ETH",
+        "description": "Ether",
+        "isActive": true,
+        "coinType": "other",
+        "decimals": 18
+    }, {
+        "id": "b107d610-5365-47c3-88ee-cebbd5dd7254",
+        "code": "DOGE",
+        "description": "Dogecoin",
+        "coinType": "other",
+        "isActive": true,
+        "decimals": 9
+    }, {
+        "id": "fd6df7e6-8d85-4f96-9fe3-577bf4963e34",
+        "code": "LTC",
+        "description": "Litecoin",
+        "coinType": "other",
+        "isActive": true,
+        "decimals": 9
+    }
+]

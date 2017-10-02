@@ -2,42 +2,40 @@
 const uuid = require('uuid/v4');
 
 module.exports = function (seq, Sequelize) {
-    const User = seq.define('User', {
+    const Tag = seq.define('Currency', {
         id: {
             type: Sequelize.UUID,
             primaryKey: true,
             allowNull: false,
         },
-        email: {
-            type: Sequelize.STRING(512),
+        code: {
+            type: Sequelize.STRING(16),
             allowNull: false,
             unique: true,
         },
-        name: {
-            type: Sequelize.STRING(512),
+        symbol: {
+            type: Sequelize.STRING(1),
             allowNull: false,
-        },
-        facebookUserId: {
-            type: Sequelize.STRING(512),
             unique: true,
         },
-        isAdmin: {
-            type: Sequelize.BOOLEAN,
-            defaultValue: false,
+        description: {
+            type: Sequelize.STRING(512),
             allowNull: false,
         },
-        password: {
-            type: Sequelize.STRING,
+        isActive: {
+            type: Sequelize.BOOLEAN(),
+            defaultValue: true,
+            allowNull: false,
         },
     }, {
-        tableName: 'Users',
+        tableName: 'Currency',
     });
 
-    User.addHook('beforeCreate', record => {
+    Tag.addHook('beforeCreate', record => {
         if (record.id === null) {
             record.id = uuid();
         }
     });
 
-    return User;
+    return Tag;
 };

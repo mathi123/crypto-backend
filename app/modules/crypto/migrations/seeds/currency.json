@@ -1,0 +1,9 @@
+[
+    {
+        "id": "8e57e443-e8a0-42a9-a625-19ee90447130",
+        "code": "EUR",
+        "symbol": "€",
+        "description": "Euro",
+        "isActive": true
+    }
+]
