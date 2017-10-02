@@ -6,8 +6,8 @@ const path = require('path');
 const DatabaseMigrator = require('./database-migrator');
 
 // Jobs (temp)
-const synchronizeCoins = require('../modules/crypto-portfolio/apis/bittrex');
-const synchroniseBlocks = require('../modules/crypto-portfolio/apis/ethereum');
+const synchronizeCoins = require('../modules/ethereum/apis/bittrex');
+const synchroniseBlocks = require('../modules/ethereum/apis/ethereum');
 
 class Bootstrapper{
 
