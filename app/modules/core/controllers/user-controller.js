@@ -12,7 +12,11 @@ class UserController{
         var createUserRoute = `/${this.routePrefix}/user`;
         console.info("building user route:" + createUserRoute);
         app.post(createUserRoute, (req, res, next) => this.createUser(req, res).catch(next));
-        return [createUserRoute];
+
+        var validateUserRoute = `/${this.routePrefix}/user/validate`;
+        app.get(validateUserRoute, (req, res, next) => this.validate(req, res).catch(next));
+
+        return [createUserRoute, validateUserRoute];
     }
 
     buildAuthenticatedRoutes(app) {
@@ -20,6 +24,28 @@ class UserController{
         app.get(`/${this.routePrefix}/user/:id`, (req, res, next) => this.getUserById(req, res).catch(next));
         app.delete(`/${this.routePrefix}/user/:id`, (req, res, next) => this.deleteUser(req, res).catch(next));
         app.put(`/${this.routePrefix}/user/:id`, (req, res, next) => this.updateUser(req, res).catch(next));
+    }
+
+    async validate(req, res) {
+        var email = req.query.email;
+
+        if(email === null || email === undefined){
+            res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            return;
+        }
+
+        const userCount = await models.User.count({
+            where: {
+                email: email
+            }
+        });
+
+        if(userCount > 0){
+            res.sendStatus(HttpStatus.CONFLICT);
+            return;
+        }
+
+        res.sendStatus(HttpStatus.OK);
     }
 
     async getAllUsers(req, res) {
