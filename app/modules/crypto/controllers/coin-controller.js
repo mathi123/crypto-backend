@@ -19,7 +19,7 @@ class CoinController{
     async getAll(req, res) {
         const records = await models.Coin.all();
 
-        res.json(records.map(u => this.exporter(u)));
+        res.json(records.map(u => this.exporter(u, req.isAdmin)));
     }
 
     async getById(req, res) {
@@ -38,7 +38,7 @@ class CoinController{
         if(record === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
         }else{
-            res.json(this.exporter(record));
+            res.json(this.exporter(record, req.isAdmin));
         }
     }
 
@@ -111,21 +111,24 @@ class CoinController{
         res.sendStatus(HttpStatus.NO_CONTENT);
     }
 
-    exporter(record) {
+    exporter(record, isAdmin) {
         let result = {
             id: record.id,
             code: record.code,
             description: record.description,
-            isActive: record.isActive,
-            coinType: record.coinType,
-            baseAddress: record.baseAddress,
-            decimals: record.decimals,
-            createdAt: record.createdAt,
-            updatedAt: record.updatedAt,
-            _links : {
-                self: `${this.routePrefix}/${ record.id }`,
-            }
         };
+
+        if(isAdmin){
+            result.isActive = record.isActive;
+            result.coinType = record.coinType;
+            result.baseAddress = record.baseAddress;
+            result.decimals = record.decimals;
+            result.createdAt = record.createdAt;
+            result.updatedAt = record.updatedAt;
+            result._links = {
+                self: `${this.routePrefix}/${ record.id }`,
+            };
+        }
 
         return result;
     }
