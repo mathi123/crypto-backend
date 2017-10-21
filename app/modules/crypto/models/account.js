@@ -33,7 +33,7 @@ module.exports = function (seq, Sequelize) {
             allowNull: false,
         },
         color: {
-            type: Sequelize.STRING(6),
+            type: Sequelize.STRING(7),
             allowNull: false,
         },
         address: {

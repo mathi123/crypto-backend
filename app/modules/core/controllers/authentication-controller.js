@@ -22,20 +22,25 @@ class AuthenticationController{
     }
 
     async checkAuthenticationToken(req, res, next) {
-        console.info("checking authentication.");
+        //console.info("checking authentication.");
         if(this.publicRoutes.indexOf(this.trimRoute(req.url)) === -1){
-            const tokenHeader = req.get('authorization');
+            let tokenHeader = req.get('authorization');
+
+            /*if(tokenHeader === null || tokenHeader === undefined){
+                tokenHeader = req.query.token;
+            }*/
+
             if (tokenHeader === null || tokenHeader === undefined) {
                 console.info("no token present");
                 res.sendStatus(HttpStatus.UNAUTHORIZED);
             } else {
-                console.info("token present");
+                //console.info("token present");
                 const token = tokenHeader.substr(tokenHeader.indexOf(' ') + 1);
                 const valid = await this.verifyToken(token);
     
                 if (valid) {
                     let payload = this.getTokenPayload(token);
-                    console.info("token payload: "+JSON.stringify(payload));
+                    //console.info("token payload: "+JSON.stringify(payload));
 
                     req.userId = payload.sub;
                     req.isAdmin = payload.adm;

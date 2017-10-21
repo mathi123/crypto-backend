@@ -3,6 +3,7 @@
   "routePrefix": "api",
   "debug": true,
   "runMigrationsOnStartUp": true,
+  "runJobrunnerOnStartup": true,
   "orm": {
     "username": "postgres",
     "password": "postgres",
@@ -16,5 +17,6 @@
     "core",
     "crypto"
   ],
-  "ethereumApi": "http://127.0.0.1:8545"
+  "ethereumApi": "http://127.0.0.1:8545",
+  "priceCheckInSeconds": 120
 }

@@ -67,9 +67,10 @@ class UserController{
             const values = {
                 name : userData.name,
                 email: userData.email,
+                coinId: userData.coinId
             };
 
-            await models.User.update(values, { where: { id }, fields: ['name', 'email'] });
+            await models.User.update(values, { where: { id }, fields: ['name', 'email', 'coinId'] });
 
             res.location(`/${this.routePrefix}/user/${ id }`);
             res.sendStatus(HttpStatus.NO_CONTENT);
@@ -85,6 +86,7 @@ class UserController{
             name: userData.name,
             email: userData.email,
             password: await bcrypt.hash(userData.password, 10),
+            currencyId: userData.currencyId,
         };
 
         await models.User.create(user);

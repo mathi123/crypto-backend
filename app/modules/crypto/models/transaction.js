@@ -2,7 +2,7 @@
 const uuid = require('uuid/v4');
 
 module.exports = function (seq, Sequelize) {
-    const AccountSummary = seq.define('AccountSummary', {
+    const Transaction = seq.define('Transaction', {
         id: {
             type: Sequelize.UUID,
             primaryKey: true,
@@ -18,31 +18,32 @@ module.exports = function (seq, Sequelize) {
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
         },
+        transactionId: {
+            allowNull: false,
+            type: Sequelize.STRING(100)
+        },
         ts: {
             type: Sequelize.BIGINT,
             allowNull: false,
         },
-        total:{
+        amount:{
             type: Sequelize.DECIMAL(50,20),
-            allowNull: false
         },
-        unitPrice:{
-            type: Sequelize.DECIMAL(50,20),
-            allowNull: false
+        note: {
+            type: Sequelize.STRING(512)
         },
-        increase:{
-            type: Sequelize.DECIMAL(20,4),
-            allowNull: false
-        }
+        counterParty:{
+            type: Sequelize.STRING
+        },  
     }, {
-        tableName: 'AccountSummary',
+        tableName: 'Transaction',
     });
 
-    AccountSummary.addHook('beforeCreate', record => {
+    Transaction.addHook('beforeCreate', record => {
         if (record.id === null) {
             record.id = uuid();
         }
     });
 
-    return AccountSummary;
+    return Transaction;
 };

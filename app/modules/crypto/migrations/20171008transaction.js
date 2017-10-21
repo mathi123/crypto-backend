@@ -17,6 +17,10 @@ module.exports = {
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
             },
+            transactionId: {
+                allowNull: false,
+                type: Sequelize.STRING(100)
+            },
             ts: {
                 type: Sequelize.BIGINT,
                 allowNull: false,

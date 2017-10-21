@@ -43,6 +43,12 @@ module.exports = {
             updatedAt: {
                 type: Sequelize.DATE,
             }
+        }, {
+            uniqueKeys: {
+                uniquePerTimestamp: {
+                    fields: ['ts', 'coinId', 'currencyId']
+                }
+            }
         });
     },
     down (queryInterface) {

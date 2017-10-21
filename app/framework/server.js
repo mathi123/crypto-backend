@@ -3,6 +3,9 @@ const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const HttpStatus = require('http-status-codes');
 const cors = require('cors');
+const socketIo = require('socket.io');
+const http = require('http');
+const SocketManager = require('./socket-manager');
 
 class Server{
     constructor(configuration){
@@ -23,11 +26,14 @@ class Server{
                 console.info('listening on port ' + this.port);
             }
         });
+
+        this.io.attach(this.server);
     }
 
     build() {
         this.initializeExpress();
         this.initializeMiddleWares();
+        this.initializeSockeIo();
     }
 
     buildFallbackRoute(){
@@ -45,6 +51,23 @@ class Server{
         this.app = initializeExpressApplication();
     }
 
+    initializeSockeIo(){
+        let socketManager = new SocketManager();
+
+        this.io = socketIo.listen({
+            path: '/socket',
+            serveClient: false,
+            // below are engine.IO options
+            //pingInterval: 10000,
+            //pingTimeout: 5000,
+            //cookie: false
+          });
+
+        socketManager.initialize(this.io);
+
+        SocketManager.Current = socketManager;
+    }
+
     initializeMiddleWares(){
         this.enableCorsMiddleWare();
         this.enableJsonParserMiddleWare();
@@ -53,8 +76,8 @@ class Server{
 
     enableCorsMiddleWare(){
         const corsOptions = {
-            allowedHeaders: ['Content-Type', 'Authorization'],
-            exposedHeaders: ['Content-Type', 'Authorization'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Location'],
+            exposedHeaders: ['Content-Type', 'Authorization', 'Location'],
         };
         const corsMiddleWare = cors(corsOptions);
         this.app.use(corsMiddleWare);

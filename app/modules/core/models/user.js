@@ -29,6 +29,16 @@ module.exports = function (seq, Sequelize) {
         password: {
             type: Sequelize.STRING,
         },
+        currencyId: {
+            allowNull: true,
+            type: Sequelize.UUID,
+            references: {
+                model: 'Currency',
+                key: 'id',
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+        },
     }, {
         tableName: 'Users',
     });

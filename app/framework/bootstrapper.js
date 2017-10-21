@@ -4,6 +4,7 @@ const Server = require('./server');
 const RouteInitializer = require('./route-intializer');
 const path = require('path');
 const DatabaseMigrator = require('./database-migrator');
+const JobRunner = require('./job-runner');
 
 // Jobs (temp)
 const synchronizeCoins = require('../modules/ethereum/apis/bittrex');
@@ -22,7 +23,7 @@ class Bootstrapper{
         this.loadModules();
         this.createServer();
         this.buildRoutes();
-
+        this.startJobRunner();
         //await this.startJobs();
 
         return this.server;
@@ -70,6 +71,15 @@ class Bootstrapper{
         const modules = this.configuration.modules;
         modules.forEach((module) => routeInitializer.loadModule(module));
         routeInitializer.bootstrap(app);
+    }
+
+    startJobRunner(){
+        if(this.configuration.runJobrunnerOnStartup){
+            const jobRunner = new JobRunner();
+            jobRunner.initialize(this.configuration);
+            jobRunner.start();
+            JobRunner.Current = jobRunner;
+        }
     }
 
     async startJobs(){

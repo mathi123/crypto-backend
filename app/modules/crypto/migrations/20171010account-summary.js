@@ -16,10 +16,12 @@ module.exports = {
                 },
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
+                unique: 'oneSummaryPerTs'
             },
             ts: {
                 type: Sequelize.BIGINT,
                 allowNull: false,
+                unique: 'oneSummaryPerTs'
             },
             total:{
                 type: Sequelize.DECIMAL(50,20),
@@ -40,6 +42,12 @@ module.exports = {
             updatedAt: {
                 type: Sequelize.DATE,
                 allowNull: false,
+            }
+        }, {
+            uniqueKeys: {
+                oneSummaryPerTs: {
+                    fields: ['ts', 'accountId']
+                }
             }
         });
     },

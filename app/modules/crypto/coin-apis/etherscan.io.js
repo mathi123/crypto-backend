@@ -3,10 +3,10 @@ const uuid = require('uuid/v4');
 const sleep = require('sleep-promise');
 
 class EtherscanApi{
-    constructor(){
+    constructor(coin){
         this.apiKey = '1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E';
         this.okStatus = 1;
-        this.weiToEther = Math.pow(10, 18);
+        this.weiToEther = Math.pow(10, coin.decimals);
     }
 
     async getBalance(address){
@@ -41,6 +41,7 @@ class EtherscanApi{
         let data = null;
         
         try{
+            console.log(url);
             data = await theInternet(options);
         }catch(Error){
             if(data === null){
@@ -74,8 +75,8 @@ class EtherscanApi{
 
     formatResultData(t){
         var result = {
-            id: uuid(),
-            time: t.timeStamp * 1000,
+            id: t.hash,
+            ts: t.timeStamp * 1000,
             from: t.from,
             to: t.to,
             value: t.value / this.weiToEther,

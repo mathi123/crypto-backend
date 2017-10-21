@@ -38,6 +38,29 @@ module.exports = function (seq, Sequelize) {
         tableName: 'TransactionTag',
     });
 
+    TransactionTag.associate = function(models){
+        const transactionModel = models['crypto']['Transaction'];
+        const tagModel = models['crypto']['Tag'];
+
+        transactionModel.hasMany(TransactionTag, {
+            foreignKey: 'transactionId'
+        });
+
+        TransactionTag.belongsTo(transactionModel, {
+            foreignKey: 'transactionId',
+            constraints: false
+          });
+
+        tagModel.hasMany(TransactionTag, {
+            foreignKey: "tagId"
+        });
+
+        TransactionTag.belongsTo(tagModel, {
+            foreignKey: 'tagId',
+            constraints: false
+          });
+    }
+
     TransactionTag.addHook('beforeCreate', record => {
         if (record.id === null) {
             record.id = uuid();
