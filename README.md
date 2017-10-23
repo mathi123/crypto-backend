@@ -18,6 +18,7 @@ Later runs
 ## Jobs
 
 |   Job Name   |   Job description   |
+|   --   |   --   |
 |   CheckPricesJob   |   Makes webrequest to get the most recent prices of all crypto's. Stores the result in the database   |
 |   CheckTotalsJob   |   Recalculates the total for each account, using prices from a given time. This job is triggered after the CheckPricesJob   |
 |   MonitorLastEthereumBlock   |   Periodically checks the last un-parsed ethereum blocks, and imports all erc20 transactions for the existing erc20 crypto's   |
