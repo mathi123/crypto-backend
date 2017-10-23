@@ -32,7 +32,7 @@ class JobProgressManager{
             }
         });
 
-        await logVerbose(jobId, `Progress update: ${progress} %...`)
+        await this.logVerbose(jobId, `Progress update: ${progress} %...`)
     }
 
     async setDone(jobId){       

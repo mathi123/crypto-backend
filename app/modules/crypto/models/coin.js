@@ -60,6 +60,19 @@ module.exports = function (seq, Sequelize) {
         tableName: 'Coin',
     });
 
+    Coin.associate = function(models){
+        const Erc20Transaction = models['crypto']['Erc20Transaction'];
+
+        Coin.hasMany(Erc20Transaction, {
+            foreignKey: 'coinId'
+        });
+
+        Erc20Transaction.belongsTo(Coin, {
+            foreignKey: 'coinId',
+            constraints: false
+          });
+    }
+
     Coin.addHook('beforeCreate', record => {
         if (record.id === null) {
             record.id = uuid();

@@ -4,6 +4,7 @@ const HttpStatus = require('http-status-codes');
 const bcrypt = require('bcrypt');
 const JobRunner = require('../../../framework/job-runner');
 const Logger = require('../managers/logger');
+const sequelize = require('sequelize');
 
 class CoinController{
     constructor(routePrefix){
@@ -15,9 +16,37 @@ class CoinController{
         app.get(this.routePrefix, (req, res, next) => this.getAll(req, res).catch(next));
         app.get(`${this.routePrefix }/:id`, (req, res, next) => this.getById(req, res).catch(next));
         app.delete(`${this.routePrefix }/:id`, (req, res, next) => this.remove(req, res).catch(next));
+        app.post(`${this.routePrefix }/:id/import-erc20`, (req, res, next) => this.importErc20Coin(req, res).catch(next));
         app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
         app.post(`${this.routePrefix }/import-erc20`, (req, res, next) => this.importErc20(req, res).catch(next));
         app.put(`${this.routePrefix }/:id`, (req, res, next) => this.update(req, res).catch(next));
+    }
+    
+    async importErc20Coin(req, res){
+        if(!req.isAdmin){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
+        const id = req.params.id;
+        const record = await models.Coin.findOne({
+            where: { 
+                id: id 
+            }
+        });
+
+        if(record === null){
+            res.sendStatus(HttpStatus.NOT_FOUND);
+        }else{
+            try{
+                let jobId = await JobRunner.Current.jobManager.publish('ImportErc20CoinJob', { coinId: id});
+                await this.logger.verbose("ImportErc20CoinJob job published", jobId);
+                res.sendStatus(HttpStatus.OK);
+            }catch(err){
+                await this.logger.error("could not publish job of type ImportErc20CoinJob", err);
+                res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
     }
 
     async importErc20(req, res){
@@ -37,7 +66,29 @@ class CoinController{
     }
 
     async getAll(req, res) {
-        const records = await models.Coin.all();
+        const records = await models.Coin.findAll({
+            attributes: ['id', 
+                'code',
+                'description', 
+                'isActive', 
+                'coinType', 
+                'baseAddress', 
+                'decimals',
+                'state',
+                'firstBlockSynchronized',
+                'lastBlockSynchronized',
+                'createdAt',
+                'updatedAt',
+                [sequelize.fn('COUNT', sequelize.col('Erc20Transactions.coinId')), 'transactionCount']
+            ],
+            include: [{
+                model:models.Erc20Transaction ,
+                attributes: [],
+                duplicating: false,
+                required: false
+              }],
+              group: ['Coin.id']
+        });
 
         res.json(records.map(u => this.exporter(u, req.isAdmin)));
     }
@@ -146,6 +197,7 @@ class CoinController{
             result.state = record.state;
             result.firstBlockSynchronized = record.firstBlockSynchronized;
             result.lastBlockSynchronized = record.lastBlockSynchronized;
+            result.transactionCount = record.transactionCount;
             result.createdAt = record.createdAt;
             result.updatedAt = record.updatedAt;
             result._links = {

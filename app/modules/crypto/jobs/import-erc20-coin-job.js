@@ -35,52 +35,67 @@ class ImportErc20CoinJob{
         try{
             let web3 = this.getWeb3();
             let coin = await this.getCoin(data.data.coinId);
-            await this.jobProgressManager.logVerbose(`Base address of ${coin.description} is ${coin.baseAddress}`);
+            await this.jobProgressManager.logVerbose(data.id, `Base address of ${coin.description} is ${coin.baseAddress}`);
     
             let contract = this.getContract(web3, coin.baseAddress);
     
-            this.getLastBlock(web3, (blockNumber) => this.parseAllBlocks(data.id, contract, 0, blockNumber, coin));
-    
-            await this.jobProgressManager.setDone(data.id);
+            if(coin.firstBlockSynchronized !== null && coin.firstBlockSynchronized !== undefined){
+                if(coin.firstBlockSynchronized === 0){
+                    let blockNumber = (await this.getLastBlock(web3)).currentBlock;
+                    await this.parseAllBlocks(data.id, contract, coin.lastBlockSynchronized, blockNumber, coin)
+                }else{
+                    await this.parseAllBlocks(data.id, contract, 0, coin.firstBlockSynchronized, coin);
+                }
+            }else{
+                let blockNumber = (await this.getLastBlock(web3)).currentBlock;
+                await this.parseAllBlocks(data.id, contract, 0, blockNumber, coin);          
+            }
         }catch(err){
             await this.jobProgressManager.setFailed(data.id);
             await this.jobProgressManager.logError(data.id, "Job execution failed", err);
         }
+
+        await this.jobProgressManager.setDone(data.id);
     }
 
-    parseAllBlocks(jobId, contract, from, to, coin){
-        this.jobProgressManager.logVerbose(jobId, `Last block: ${to}`);
-
+    async parseAllBlocks(jobId, contract, from, to, coin){
         let batchFrom = Math.max(to - this.batchSize, from);
-        this.parseBlocksRecursivly(jobId, contract, batchFrom, to, from, to, coin);
+        await this.parseBlocksRecursivly(jobId, contract, batchFrom, to, from, to, coin);
     }
 
-    parseBlocksRecursivly(jobId, contract, fromBlockNumber, toBlockNumber, minBlockNumber, maxBlockNumber, coin){
-        this.jobProgressManager.logVerbose(jobId, `Getting ${fromBlockNumber} -> ${toBlockNumber}`);
+    async parseBlocksRecursivly(jobId, contract, fromBlockNumber, toBlockNumber, minBlockNumber, maxBlockNumber, coin){
+        await this.jobProgressManager.logVerbose(jobId, `Getting ${fromBlockNumber} -> ${toBlockNumber}`);
 
-        contract.getPastEvents("Transfer", {
-            fromBlock: fromBlockNumber,
-            toBlock: toBlockNumber
-        }, (err, transferEvents) => this.process(jobId, err, transferEvents, contract, minBlockNumber, fromBlockNumber, maxBlockNumber, coin));    
-    }
-
-    process(jobId, error, transferEvents, contract, fromMin, from, toMax, coin){
-        if(error){
+        try{
+            let transferEvents = await contract.getPastEvents("Transfer", {
+                fromBlock: fromBlockNumber,
+                toBlock: toBlockNumber
+            });
+            await this.process(jobId, transferEvents, contract, minBlockNumber, fromBlockNumber, maxBlockNumber, coin)
+        }catch(err){
+            console.log(err);
             throw new Error("Could not load Events");
         }
-
-        this.processEvents(error, transferEvents, coin);
-        this.jobProgressManager.updateProgress(jobId, Math.round(100*(toMax - from)/(toMax - fromMin)));
-
-        if(from <= fromMin) return;
-        
-        let to = from - 1;
-        let nextFrom = Math.max(from - this.batchSize, fromMin);
-        
-        this.parseBlocksRecursivly(jobId, contract, nextFrom, to, fromMin, toMax, coin);
     }
 
-    processEvents(error, transferEvents, coin){
+    async process(jobId, transferEvents, contract, fromMin, from, toMax, coin){
+        await this.jobProgressManager.logVerbose(jobId, `${transferEvents.length} events found.`);
+        await this.processEvents(transferEvents, coin);
+        await this.jobProgressManager.updateProgress(jobId, Math.round(100*(toMax - from)/(toMax - fromMin)));
+
+        if(from > fromMin){
+            coin.lastBlockSynchronized = toMax;
+            coin.firstBlockSynchronized = from;
+            coin.save();
+
+            let to = from - 1;
+            let nextFrom = Math.max(from - this.batchSize, fromMin);
+            
+            await this.parseBlocksRecursivly(jobId, contract, nextFrom, to, fromMin, toMax, coin);
+        }
+    }
+
+    async processEvents(transferEvents, coin){
         for(let txn of transferEvents){
             let record = {
                 id: uuid(),
@@ -95,21 +110,21 @@ class ImportErc20CoinJob{
                 value: txn.returnValues._value / Math.pow(10, coin.decimals)
             };
             
-            let existing = models.Erc20Transaction.findOne({
+            let existing = await models.Erc20Transaction.findOne({
                 where: {
                     coinId: coin.id,
                     blockNumber: txn.blockNumber,
                     transactionHash: txn.transactionHash,
                     logIndex: txn.logIndex
                 }
-            }).then((result) => {
-                if(result === null){
-                    models.Erc20Transaction.create(record).then(() => {}, (err) => {
-                        console.log("could not insert");
-                        console.error(err);
-                    });
-                }
             });
+
+            if(existing === null){
+                await models.Erc20Transaction.create(record);
+            }else{
+                existing.isRemoved = record.isRemoved;
+                existing.save();
+            }
         }
     }
 
@@ -130,10 +145,8 @@ class ImportErc20CoinJob{
         return new web3.eth.Contract(erc20, contractAddress);
     }
 
-    getLastBlock(web3, callback){
-        web3.eth.isSyncing()
-            .then((res) => callback(res.currentBlock))
-            .error(err => console.error(err));
+    async getLastBlock(web3){
+        return await web3.eth.isSyncing();
     }
 }
 
