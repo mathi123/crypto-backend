@@ -28,6 +28,11 @@ module.exports = function (seq, Sequelize) {
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
         },
+        state: {
+            type: Sequelize.ENUM('new', 'importing', 'error', 'done'),
+            defaultValue: 'new',
+            allowNull: false
+        },
         description: {
             type: Sequelize.STRING,
             allowNull: false,

@@ -47,6 +47,11 @@ module.exports = {
                 defaultValue: 'auto',
                 allowNull: false
             },
+            state: {
+                type: Sequelize.ENUM('new', 'importing', 'error', 'done'),
+                defaultValue: 'new',
+                allowNull: false
+            },
             createdAt: { 
                 type: Sequelize.DATE,
                 allowNull: false,

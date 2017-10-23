@@ -35,7 +35,7 @@ class DatabaseMigrator{
             const migrations = await umzug.up();
             // ToDo console.log(`the following migrations where run: ${JSON.stringify(migrations)}`);
         }catch(err){
-            // ToDo console.log(err);
+            console.log(err);
         }
     }
 }

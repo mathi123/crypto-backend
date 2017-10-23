@@ -2,8 +2,17 @@ const theInternet = require('request-promise-native');
 const uuid = require('uuid/v4');
 const models = require("../models");
 const cheerio = require('cheerio');
+const JobProgressManager = require('../managers/job-progress-manager');
+const Logger = require('../managers/logger');
+
 
 class SynchronizeErc20CoinsJob{
+    constructor(){
+        this.jobName = 'SynchronizeErc20CoinsJob';
+        this.jobProgressManager = new JobProgressManager();
+        this.logger = new Logger();
+    }
+
     enqueue(jobManager){
         /*jobManager.publish('SynchronizeErc20CoinsJob', {}, {startIn: 5})
             .then((id) => console.log("job published:"+id))
@@ -11,25 +20,36 @@ class SynchronizeErc20CoinsJob{
     }
 
     subscribe(jobManager){
-        jobManager.subscribe('SynchronizeErc20CoinsJob', () => this.synchronizeCoins())
-            .then(() => console.log("subscribed to SynchronizeErc20CoinsJob"))
-            .error((err) => console.error(err));
+        jobManager.subscribe(this.jobName, (data) => this.synchronizeCoins(data))
+            .then(() => this.logger.verbose("Subscribed to job", this.jobName))
+            .error((err) => this.logger.error("Could not subscribe to job", err));
     }
 
-    synchronizeCoins(){
-        this.synchronizeCoinsAsync()
-            .then(() => console.log("done syncing coins"))
-            .catch((err) => console.error(err));
+    async synchronizeCoins(data){
+        await this.jobProgressManager.start(data.id, this.jobName, null)
+
+        try{
+            await this.synchronizeCoinsAsync(data.id);
+            await this.jobProgressManager.setDone(data.id);
+        }
+        catch(err){
+            await this.jobProgressManager.logError(data.id, "Job failed", err);
+            await this.jobProgressManager.setFailed(data.id);
+        }
     }
 
-    async synchronizeCoinsAsync(){
-        console.log("Synchronizing coins");
-    
+    async synchronizeCoinsAsync(jobId){
+        this.jobProgressManager.logVerbose(jobId, "Synchronizing coins");
+        this.jobProgressManager.logVerbose(jobId, "Getting coin list");
+
         let coins = await this.getCoins();
-    
+        
+        this.jobProgressManager.updateProgress(jobId, 50);
+        this.jobProgressManager.logVerbose(jobId, "Updating coins in database");
+
         await this.updateCoins(coins);
     
-        console.log("Done Synchronizing coins");
+        this.jobProgressManager.logVerbose(jobId, "Done");
     }
     
     async getCoins(){
@@ -82,7 +102,7 @@ class SynchronizeErc20CoinsJob{
                             id: uuid(),
                             code: coin.Currency,
                             description: coin.CurrencyLong,
-                            isActive: coin.IsActive,
+                            isActive: false,
                             coinType: 'erc20contract',
                             baseAddress: baseAddress
                         });

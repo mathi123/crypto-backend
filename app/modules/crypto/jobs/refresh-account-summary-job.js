@@ -1,11 +1,17 @@
 const models = require('../models');
 const uuid = require('uuid/v4');
 const AccountSummaryManager = require('../managers/account-summary-manager');
+const JobProgressManager = require('../managers/job-progress-manager');
+const Logger = require('../managers/logger');
+
 
 class RefreshAccountSummaryJob{
     
     constructor(configuration){
+        this.jobName = 'RefreshAccountSummaryJob';
         this.accountSummaryManager = new AccountSummaryManager();
+        this.jobProgressManager = new JobProgressManager();
+        this.logger = new Logger();
     }
 
     enqueue(jobManager){
@@ -14,27 +20,24 @@ class RefreshAccountSummaryJob{
     subscribe(jobManager){
         this.jobManager = jobManager;
 
-        jobManager.subscribe('RefreshAccountSummaryJob', (data) => this.refreshAccountSummary(data))
-            .then(() => console.log("subscribed to RefreshAccountSummaryJob"))
-            .error((err) => console.error(err));
+        jobManager.subscribe(this.jobName, (data) => this.refreshAccountSummary(data))
+            .then(() => this.logger.verbose("Subscribed to job", this.jobName))
+            .error((err) => this.logger.error("Could not subscribe to " + this.jobName + " job", err));
     }
 
-    refreshAccountSummary(data){
-        this.jobManager.unsubscribe('RefreshAccountSummaryJob');
+    async refreshAccountSummary(data){
+        this.jobManager.unsubscribe(this.jobName);
+        await this.jobProgressManager.start(data.id, this.jobName, data.data);
 
-        this.refreshPricesAsync(data)
-            .then(() => {
-                console.log("done refreshing accountSummary");
-            }, (err) => {
-                console.error("error refreshing accountSummary");
-                console.error(err);
-            });
-    }
-
-    async refreshPricesAsync(data){
-        let timestamp = data.data.timestamp;
-
-        await this.accountSummaryManager.refreshAllAccounts(timestamp);
+        try{
+            let timestamp = data.data.timestamp;
+            await this.accountSummaryManager.refreshAllAccounts(timestamp);
+            await this.jobProgressManager.setDone(data.id);
+        }
+        catch(err){
+            await this.jobProgressManager.logError(data.id, "Job failed", err);
+            await this.jobProgressManager.setFailed(data.id);
+        }
     }
 }
 

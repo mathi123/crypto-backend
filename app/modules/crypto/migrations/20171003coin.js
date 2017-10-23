@@ -25,12 +25,25 @@ module.exports = {
                 defaultValue: 'other',
                 allowNull: false,
             },
+            state: {
+                type: Sequelize.ENUM('new', 'importing', 'error', 'done'),
+                defaultValue: 'new',
+                allowNull: false
+            },
             baseAddress: {
                 type: Sequelize.STRING(512)
             },
             decimals: {
                 type: Sequelize.INTEGER,
                 defaultValue: 18
+            },
+            firstBlockSynchronized: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+            },
+            lastBlockSynchronized: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
             },
             createdAt: { 
                 type: Sequelize.DATE 

@@ -3,12 +3,18 @@ const BigNumber = require('bignumber.js');
 const erc20 = require('../ethereum/erc20-abi');
 const models = require('../models');
 const uuid = require('uuid/v4');
+const JobProgressManager = require('../managers/job-progress-manager');
+const Logger = require('../managers/logger');
+
 
 class ImportErc20CoinJob{
     
     constructor(configuration){
+        this.jobName = 'ImportErc20CoinJob';
         this.apiUrl = configuration.ethereumApi;
         this.batchSize = 1000;
+        this.jobProgressManager = new JobProgressManager();
+        this.logger = new Logger();
     }
 
     enqueue(jobManager){
@@ -18,52 +24,60 @@ class ImportErc20CoinJob{
     }
 
     subscribe(jobManager){
-        jobManager.subscribe('ImportErc20CoinJob', (data) => this.importErc20Coin(data))
-            .then(() => console.log("subscribed to ImportErc20CoinJob"))
-            .error((err) => console.error(err));
+        jobManager.subscribe(this.jobName, (data) => this.importErc20Coin(data))
+            .then(() => this.logger.verbose("Subscribed to Job", this.jobName))
+            .error((err) => this.logger.error(`Subscribing to job failed: ${this.jobName}.`, err));
     }
 
     async importErc20Coin(data){
-        console.log("Starting import erc20transactions");
-        console.log("data: " + JSON.stringify(data));
+        await this.jobProgressManager.start(data.id, this.jobName, data.data);
 
-        let web3 = this.getWeb3();
-        let coin = await this.getCoin(data.data.coinId);
-        console.log(`Base address of ${coin.description} is ${coin.baseAddress}`);
-
-        let contract = this.getContract(web3, coin.baseAddress);
-
-        this.getLastBlock(web3, (blockNumber) => this.parseAllBlocks(contract, 0, blockNumber, coin));
+        try{
+            let web3 = this.getWeb3();
+            let coin = await this.getCoin(data.data.coinId);
+            await this.jobProgressManager.logVerbose(`Base address of ${coin.description} is ${coin.baseAddress}`);
+    
+            let contract = this.getContract(web3, coin.baseAddress);
+    
+            this.getLastBlock(web3, (blockNumber) => this.parseAllBlocks(data.id, contract, 0, blockNumber, coin));
+    
+            await this.jobProgressManager.setDone(data.id);
+        }catch(err){
+            await this.jobProgressManager.setFailed(data.id);
+            await this.jobProgressManager.logError(data.id, "Job execution failed", err);
+        }
     }
 
-    parseAllBlocks(contract, from, to, coin){
-        console.log(`Last block: ${to}`);
+    parseAllBlocks(jobId, contract, from, to, coin){
+        this.jobProgressManager.logVerbose(jobId, `Last block: ${to}`);
+
         let batchFrom = Math.max(to - this.batchSize, from);
-        this.parseBlocksRecursivly(contract, batchFrom, to, from, coin);
+        this.parseBlocksRecursivly(jobId, contract, batchFrom, to, from, to, coin);
     }
 
-    parseBlocksRecursivly(contract, fromBlockNumber, toBlockNumber, minBlockNumber, coin){
-        console.log(`Getting ${fromBlockNumber} -> ${toBlockNumber}`);
+    parseBlocksRecursivly(jobId, contract, fromBlockNumber, toBlockNumber, minBlockNumber, maxBlockNumber, coin){
+        this.jobProgressManager.logVerbose(jobId, `Getting ${fromBlockNumber} -> ${toBlockNumber}`);
 
         contract.getPastEvents("Transfer", {
             fromBlock: fromBlockNumber,
             toBlock: toBlockNumber
-        }, (err, transferEvents) => this.process(err, transferEvents, contract, minBlockNumber, fromBlockNumber, coin));    
+        }, (err, transferEvents) => this.process(jobId, err, transferEvents, contract, minBlockNumber, fromBlockNumber, maxBlockNumber, coin));    
     }
 
-    process(error, transferEvents, contract, fromMin, from, coin){
+    process(jobId, error, transferEvents, contract, fromMin, from, toMax, coin){
         if(error){
             throw new Error("Could not load Events");
         }
 
         this.processEvents(error, transferEvents, coin);
+        this.jobProgressManager.updateProgress(jobId, Math.round(100*(toMax - from)/(toMax - fromMin)));
 
         if(from <= fromMin) return;
         
         let to = from - 1;
         let nextFrom = Math.max(from - this.batchSize, fromMin);
         
-        this.parseBlocksRecursivly(contract, nextFrom, to, fromMin, coin);
+        this.parseBlocksRecursivly(jobId, contract, nextFrom, to, fromMin, toMax, coin);
     }
 
     processEvents(error, transferEvents, coin){
