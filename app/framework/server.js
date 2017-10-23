@@ -76,8 +76,8 @@ class Server{
 
     enableCorsMiddleWare(){
         const corsOptions = {
-            allowedHeaders: ['Content-Type', 'Authorization', 'Location'],
-            exposedHeaders: ['Content-Type', 'Authorization', 'Location'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Location', 'X-Total-Count'],
+            exposedHeaders: ['Content-Type', 'Authorization', 'Location', 'X-Total-Count'],
         };
         const corsMiddleWare = cors(corsOptions);
         this.app.use(corsMiddleWare);
