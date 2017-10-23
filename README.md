@@ -14,6 +14,12 @@ Later runs
 ## Start server
 
     npm run watch
+    
+## admin login
+user: admin
+password: testEthereum!
+
+user kun je toevoegen in user.json file
 
 ## Jobs
 
