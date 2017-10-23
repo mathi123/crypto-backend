@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 
 class TagController{
     constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/log`;
+        this.routePrefix = `/${routePrefix}/job`;
     }
 
     buildAuthenticatedRoutes(app) {
@@ -19,39 +19,12 @@ class TagController{
             return;
         }
 
-        const type = req.query['type'];
         const offset = req.query['offset'] || 0;
         const limit = req.query['limit'] || 50;
-        const jobId = req.query['jobId'];
 
         let filter = {};
-        
-        if(type === 'info'){
-            filter = {
-                type: {
-                    ['in'] : ['info', 'warning', 'error']
-                }
-            };
-        }else if(type === 'warning'){
-            filter = {
-                type: {
-                    ['in'] : [ 'warning', 'error']
-                }
-            };
-        }else if(type === 'error'){
-            filter = {
-                type: 'error'
-            };
-        }
-
-        if(jobId){
-            filter.jobId = jobId;
-        }
 
         const records = await models.Log.findAndCountAll({
-            attributes: [
-                'id', 'type', 'log', 'createdAt'
-            ],
             where: filter,
             order: [['createdAt', 'DESC']],
             offset: offset, limit: limit
@@ -67,7 +40,7 @@ class TagController{
         }
 
         const id = req.params.id;
-        const record = await models.Log.findOne({
+        const record = await models.Job.findOne({
             where: { 
                 id: id 
             }
@@ -83,12 +56,17 @@ class TagController{
     exporter(record) {
         return {
             id: record.id,
-            type: record.type,
-            log: record.log,
-            data: record.data,
+            name: record.name,
+            args: record.args,
+            startTime: record.startTime,
+            endTime: record.endTime,
+            progress: record.progress,
+            state: record.state,
             createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`,
+                logs: `/api/log?logId=${ record.id }`
             }
         };
     }
