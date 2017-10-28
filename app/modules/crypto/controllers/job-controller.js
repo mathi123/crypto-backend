@@ -24,7 +24,7 @@ class TagController{
 
         let filter = {};
 
-        const records = await models.Log.findAndCountAll({
+        const records = await models.Job.findAndCountAll({
             where: filter,
             order: [['createdAt', 'DESC']],
             offset: offset, limit: limit
@@ -66,7 +66,7 @@ class TagController{
             updatedAt: record.updatedAt,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`,
-                logs: `/api/log?logId=${ record.id }`
+                logs: `/api/log?jobId=${ record.id }`
             }
         };
     }
