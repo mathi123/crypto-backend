@@ -62,12 +62,16 @@ class UserController{
     async getUserById(req, res) {
         const id = req.params.id;
 
-        if(!req.isAdmin && req.userId !== id){
+        if(!(req.isAdmin || req.userId === id)){
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
         }
 
-        const user = await models.User.findOne({ id });
+        const user = await models.User.findOne({
+            where: {
+                id: id
+            }
+        });
 
         if(user === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
@@ -84,7 +88,11 @@ class UserController{
         }
 
         const userData = req.body;
-        const user = await models.User.findOne({ id });
+        const user = await models.User.findOne({
+            where: {
+                id: id
+            }
+        });
 
         if(user === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
@@ -136,6 +144,7 @@ class UserController{
 
     userExporter(user) {
         return {
+            id: user.id,
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
