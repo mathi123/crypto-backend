@@ -8,16 +8,10 @@ module.exports = function (seq, Sequelize) {
             primaryKey: true,
             allowNull: false,
         },
-        coinId: {
+        data: {
             allowNull: true,
-            type: Sequelize.UUID,
-            references: {
-                model: 'Coin',
-                key: 'id',
-            },
-            onDelete: 'CASCADE',
-            onUpdate: 'CASCADE',
-        },
+            type: Sequelize.TEXT
+        }
     }, {
         tableName: 'File',
     });

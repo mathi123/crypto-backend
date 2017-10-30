@@ -41,6 +41,16 @@ module.exports = function (seq, Sequelize) {
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
         },
+        fileId: {
+            allowNull: true,
+            type: Sequelize.UUID,
+            references: {
+                model: 'File',
+                key: 'id',
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+        },
         baseAddress: {
             type: Sequelize.STRING(512)
         },

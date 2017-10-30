@@ -22,11 +22,17 @@ class ContextController{
     }
 
     mapUser(user){
-        return {
+        let result = {
             id: user.id,
             name: user.name,
             email: user.email
         };
+
+        if(user.isAdmin){
+            result.isAdmin = true;
+        }
+
+        return result;
     }
 }
 

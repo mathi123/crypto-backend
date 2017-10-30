@@ -8,6 +8,7 @@ const sequelize = require('sequelize');
 
 class CoinController{
     constructor(routePrefix){
+        this.apiPrefix = routePrefix;
         this.routePrefix = `/${routePrefix}/coin`;
         this.logger = new Logger();
     }
@@ -20,6 +21,7 @@ class CoinController{
         app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
         app.post(`${this.routePrefix }/import-erc20`, (req, res, next) => this.importErc20(req, res).catch(next));
         app.put(`${this.routePrefix }/:id`, (req, res, next) => this.update(req, res).catch(next));
+        app.put(`${this.routePrefix }/:id/image`, (req, res, next) => this.updateImage(req, res).catch(next));
     }
     
     async importErc20Coin(req, res){
@@ -79,6 +81,7 @@ class CoinController{
                 'lastBlockSynchronized',
                 'createdAt',
                 'updatedAt',
+                'fileId',
                 [sequelize.fn('COUNT', sequelize.col('Erc20Transactions.coinId')), 'transactionCount']
             ],
             include: [{
@@ -146,6 +149,52 @@ class CoinController{
         }
     }
 
+    async updateImage(req, res) {
+        if(!req.isAdmin){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
+        const id = req.params.id;
+        const data = req.body.data;
+        const coin = await models.Coin.findOne({
+            where: { 
+                id: id 
+            }
+        });
+
+        if(coin === null){
+            res.sendStatus(HttpStatus.NOT_FOUND);
+        }else{
+            console.info(data);
+            if(coin.fileId === null || coin.fileId === undefined){
+                coin.fileId = uuid();
+                await models.File.create({
+                    id: coin.fileId,
+                    data: data
+                });
+                await coin.update({
+                    fileId: coin.fileId
+                }, {
+                    where: {
+                        id: coin.id
+                    }
+                });
+            }else{
+                await models.File.update({
+                    data: data
+                }, {
+                    where: {
+                        id: coin.fileId
+                    }
+                });
+            }
+
+            res.location(`/${this.routePrefix}/${ id }`);
+            res.sendStatus(HttpStatus.NO_CONTENT);
+        }
+    }
+
     async create(req, res) {
         const data = req.body;
 
@@ -187,7 +236,13 @@ class CoinController{
             id: record.id,
             code: record.code,
             description: record.description,
+            fileId: record.fileId,
+            _links: {}
         };
+
+        if(record.fileId !== null){
+            result._links.image = `/${this.apiPrefix}/file/${record.fileId}`;
+        }
 
         if(isAdmin){
             result.isActive = record.isActive;
@@ -200,9 +255,7 @@ class CoinController{
             result.transactionCount = record.transactionCount;
             result.createdAt = record.createdAt;
             result.updatedAt = record.updatedAt;
-            result._links = {
-                self: `${this.routePrefix}/${ record.id }`,
-            };
+            result._links.self = `${this.routePrefix}/${ record.id }`;
         }
 
         return result;
