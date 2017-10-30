@@ -38,9 +38,10 @@ class JobProgressManager{
     async setDone(jobId){       
         await models.Job.update({
             state: 'done',
-            progress: 100
+            progress: 100,
+            endTime: new Date(),
         }, {
-            fields: ['state', 'progress'],
+            fields: ['state', 'progress', 'endTime'],
             where: {
                 id: jobId
             }
@@ -49,9 +50,10 @@ class JobProgressManager{
 
     async setFailed(jobId){
         await models.Job.update({
-            state: 'failed'
+            state: 'failed',
+            endTime: new Date(),
         }, {
-            fields: ['state'],
+            fields: ['state', 'endTime'],
             where: {
                 id: jobId
             }

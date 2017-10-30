@@ -6,11 +6,10 @@ const uuid = require('uuid/v4');
 const JobProgressManager = require('../managers/job-progress-manager');
 const Logger = require('../managers/logger');
 
-
-class ImportErc20CoinJob{
+class ImportEthereumBlocksJob{
     
     constructor(configuration){
-        this.jobName = 'ImportErc20CoinJob';
+        this.jobName = 'ImportEthereumBlocksJob';
         this.apiUrl = configuration.ethereumApi;
         this.batchSize = 1000;
         this.jobProgressManager = new JobProgressManager();
@@ -18,39 +17,25 @@ class ImportErc20CoinJob{
     }
 
     enqueue(jobManager){
-        /*jobManager.publish('ImportErc20CoinJob', {coinId: 'ed357dcd-b0b2-43ce-9d24-cb1650f3f1f8'}, {startIn: 5})
-            .then((id) => console.log("job published:"+id))
-            .error((err) => console.error(err));*/
+        jobManager.publish('ImportEthereumBlocksJob', {}, {startIn: 10})
+            .then((id) => this.logger.info("job published:"+id))
+            .error((err) => this.logger.error("could not publish job of type " + this.jobName, err));
     }
 
     subscribe(jobManager){
-        jobManager.subscribe(this.jobName, (data) => this.importErc20Coin(data))
+        jobManager.subscribe(this.jobName, (data) => this.import(data))
             .then(() => this.logger.verbose("Subscribed to Job", this.jobName))
             .error((err) => this.logger.error(`Subscribing to job failed: ${this.jobName}.`, err));
     }
 
-    async importErc20Coin(data){
+    async import(data){
         await this.jobProgressManager.start(data.id, this.jobName, data.data);
 
         try{
             let web3 = this.getWeb3();
-            let coin = await this.getCoin(data.data.coinId);
-            await this.jobProgressManager.logVerbose(data.id, `Base address of ${coin.description} is ${coin.baseAddress}`);
-    
-            let contract = this.getContract(web3, coin.baseAddress);
-    
-            if(coin.firstBlockSynchronized !== null && coin.firstBlockSynchronized !== undefined){
-                if(coin.firstBlockSynchronized === 0){
-                    let blockNumber = (await this.getLastBlock(web3)).currentBlock;
-                    await this.parseAllBlocks(data.id, contract, coin.lastBlockSynchronized, blockNumber, coin)
-                }else{
-                    await this.parseAllBlocks(data.id, contract, 0, coin.firstBlockSynchronized, coin);
-                }
-            }else{
-                let blockNumber = (await this.getLastBlock(web3)).currentBlock;
-                await this.parseAllBlocks(data.id, contract, 0, blockNumber, coin);          
-            }
+            let blockNumber = (await this.getLastBlock(web3)).currentBlock;
             
+            await this.jobProgressManager.logVerbose(data.id, `Syncing up untill block nr ${blockNumber}`);
             await this.jobProgressManager.setDone(data.id);
         }catch(err){
             await this.jobProgressManager.setFailed(data.id);
@@ -150,4 +135,4 @@ class ImportErc20CoinJob{
     }
 }
 
-module.exports = ImportErc20CoinJob;
+module.exports = ImportEthereumBlocksJob;

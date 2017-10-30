@@ -3,6 +3,7 @@ const SynchronizeErc20CoinsJob = require("../modules/crypto/jobs/synchronize-erc
 const ImportErc20CoinJob = require("../modules/crypto/jobs/import-erc20-coin-job");
 const RefreshPricesJob = require("../modules/crypto/jobs/refresh-prices-job");
 const RefreshAccountSummaryJob = require("../modules/crypto/jobs/refresh-account-summary-job");
+const ImportEthereumBlocksJob = require("../modules/crypto/jobs/import-ethereum-blocks-job");
 
 class JobRunner{
     initialize(configuration){
@@ -38,15 +39,18 @@ class JobRunner{
         let importJob = new ImportErc20CoinJob(this.configuration);
         let refreshPricesJob = new RefreshPricesJob(this.configuration);
         let refreshAcccountSummaryJog = new RefreshAccountSummaryJob(this.configuration);
+        let importEthereumBlocksJob = new ImportEthereumBlocksJob(this.configuration);
 
         syncCoin.subscribe(this.jobManager);
         importJob.subscribe(this.jobManager);
         refreshPricesJob.subscribe(this.jobManager);
         refreshAcccountSummaryJog.subscribe(this.jobManager);
+        importEthereumBlocksJob.subscribe(this.jobManager);
 
         syncCoin.enqueue(this.jobManager);
         importJob.enqueue(this.jobManager);
         refreshPricesJob.enqueue(this.jobManager);
+        importEthereumBlocksJob.enqueue(this.jobManager);
     }
 
 }

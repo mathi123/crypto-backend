@@ -25,6 +25,13 @@ module.exports = function (seq, Sequelize) {
         blockNumber: {
             allowNull: false,
             type: Sequelize.INTEGER,
+            references: {
+                model: 'EthereumBlock',
+                key: 'id',
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+            unique: 'erc20_Unique'
         },
         logIndex: {
             allowNull: false,

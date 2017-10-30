@@ -3,11 +3,11 @@ const fs = require('fs');
 
 module.exports = {
     up (queryInterface, Sequelize) {
-        return queryInterface.addColumn('Coin', 'jobId', {
+        return queryInterface.addColumn('Coin', 'fileId', {
             allowNull: true,
             type: Sequelize.UUID,
             references: {
-                model: 'Job',
+                model: 'File',
                 key: 'id',
             },
             onDelete: 'SET NULL',
@@ -16,6 +16,6 @@ module.exports = {
     },
 
     down (queryInterface) {
-        return queryInterface.dropColumn('Coin',  'jobId');
+        return queryInterface.dropColumn('Coin',  'fileId');
     },
 };
