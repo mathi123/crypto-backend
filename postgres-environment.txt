@@ -1,3 +1,0 @@
-POSTGRES_USER=mitasco
-POSTGRES_PASSWORD=mitasco
-POSTGRES_DB=mitasco_db
