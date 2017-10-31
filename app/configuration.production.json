@@ -1,0 +1,22 @@
+{
+  "port": 3000,
+  "routePrefix": "api",
+  "debug": true,
+  "runMigrationsOnStartUp": true,
+  "runJobrunnerOnStartup": false,
+  "orm": {
+    "username": "postgres",
+    "password": "w47izFwg2KOIJEJh",
+    "database": "postgres",
+    "host": "146.148.97.220",
+    "port": 5432,
+    "dialect": "postgres",
+    "logging": false
+  },
+  "modules": [
+    "core",
+    "crypto"
+  ],
+  "ethereumApi": "http://127.0.0.1:8545",
+  "priceCheckInSeconds": 120
+}
