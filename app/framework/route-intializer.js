@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const logger = require('./logger');
 
 class RouteInitializer{
 
@@ -10,6 +11,7 @@ class RouteInitializer{
     }
 
     loadModule(moduleName){
+        logger.info(`Initializing routes for ${moduleName} module.`);
         const modulePath = path.join(__dirname, '../modules', moduleName);
         const controllersDirPath = path.join(modulePath, 'controllers');
 
@@ -32,26 +34,26 @@ class RouteInitializer{
 
     bootstrap(app){
         const publicRoutes = [];
-        for(let controller of this.controllers){
+        for(const controller of this.controllers){
             if(controller.buildRoutes){
                 const publicControllerRoutes = controller.buildRoutes(app);
-                for(let route in publicControllerRoutes){
+                for(const route in publicControllerRoutes){
                     publicRoutes.push(route);
                 }
             }
         }
 
-        for(let controller of this.controllers){
+        for(const controller of this.controllers){
             if(controller.buildAuthenticationRoutes){
                 controller.buildAuthenticationRoutes(app, publicRoutes);
             }
         }
 
-        for(let controller of this.controllers){
+        /*for(const controller of this.controllers){
             if(controller.buildAuthenticatedRoutes){
                 controller.buildAuthenticatedRoutes(app);
             }
-        }
+        }*/
     }
 }
 

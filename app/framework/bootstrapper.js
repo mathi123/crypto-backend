@@ -5,18 +5,16 @@ const RouteInitializer = require('./route-intializer');
 const path = require('path');
 const DatabaseMigrator = require('./database-migrator');
 const JobRunner = require('./job-runner');
+const logger = require('./logger');
 
-// Jobs (temp)
-const synchronizeCoins = require('../modules/ethereum/apis/bittrex');
-const synchroniseBlocks = require('../modules/ethereum/apis/ethereum');
+class Bootstrapper {
 
-class Bootstrapper{
-
-    constructor(){
+    constructor() {
         this.ormInitializer = new OrmInitializer();
     }
 
-    async run(configurationOverrides){
+    async run(configurationOverrides) {
+        logger.info('Starting bootstrapper');
         this.loadConfigurationFile(configurationOverrides);
         this.initializeOrm();
         await this.runMigrations();
@@ -24,20 +22,20 @@ class Bootstrapper{
         this.createServer();
         this.buildRoutes();
         this.startJobRunner();
-        //await this.startJobs();
 
         return this.server;
     }
 
-    loadConfigurationFile(configurationOverrides){
+    loadConfigurationFile(configurationOverrides) {
         const configurationLoader = new ConfigurationLoader();
         const configFilePath = path.join(__dirname, '../configuration.json');
-
+        logger.info('Loading config file', configFilePath);
+        
         this.configuration = configurationLoader.load(configFilePath, configurationOverrides);
     }
 
-    async runMigrations(){
-        if(this.configuration.runMigrationsOnStartUp) {
+    async runMigrations() {
+        if (this.configuration.runMigrationsOnStartUp) {
             this.migrationRunner = new DatabaseMigrator(this.configuration.orm, this.ormInitializer.sequelize);
 
             for (let module of this.configuration.modules) {
@@ -46,11 +44,11 @@ class Bootstrapper{
         }
     }
 
-    initializeOrm(){
+    initializeOrm() {
         this.ormInitializer.initialize(this.configuration.orm);
     }
 
-    loadModules(){
+    loadModules() {
         const modules = this.configuration.modules;
         modules.forEach((module) => this.loadModule(module));
     }
@@ -64,7 +62,7 @@ class Bootstrapper{
         this.server.build();
     }
 
-    buildRoutes(){
+    buildRoutes() {
         const app = this.server.getApp();
         const routPrefix = this.configuration.routePrefix;
         const routeInitializer = new RouteInitializer(app, routPrefix);
@@ -73,18 +71,13 @@ class Bootstrapper{
         routeInitializer.bootstrap(app);
     }
 
-    startJobRunner(){
-        if(this.configuration.runJobrunnerOnStartup){
+    startJobRunner() {
+        if (this.configuration.runJobrunnerOnStartup) {
             const jobRunner = new JobRunner();
             jobRunner.initialize(this.configuration);
             jobRunner.start();
             JobRunner.Current = jobRunner;
         }
-    }
-
-    async startJobs(){
-        await synchronizeCoins();
-        synchroniseBlocks(this.configuration.ethereumApi);
     }
 }
 

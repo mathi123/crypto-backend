@@ -31,7 +31,8 @@
     "socket.io": "^2.0.3",
     "umzug": "^2.0.1",
     "uuid": "^3.0.1",
-    "web3": "^1.0.0-beta.24"
+    "web3": "^1.0.0-beta.24",
+    "winston": "^2.4.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -42,5 +43,80 @@
     "should": "^11.2.1",
     "sinon": "^2.2.0",
     "supertest": "^3.0.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended"
+    ],
+    "env": {
+      "node": true,
+      "browser": true,
+      "es6": true,
+      "mocha": true,
+      "jasmine": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    },
+    "rules": {
+      "comma-dangle": [
+        "error",
+        "always-multiline"
+      ],
+      "comma-spacing": [
+        "error",
+        {
+          "before": false,
+          "after": true
+        }
+      ],
+      "eol-last": [
+        "error",
+        "always"
+      ],
+      "indent": [
+        "error",
+        4,
+        {
+          "MemberExpression": 1
+        }
+      ],
+      "no-multiple-empty-lines": [
+        "error"
+      ],
+      "no-new-symbol": "error",
+      "no-trailing-spaces": [
+        "error"
+      ],
+      "no-undef": [
+        "error"
+      ],
+      "no-unused-vars": [
+        "error"
+      ],
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ],
+      "object-shorthand": "error",
+      "prefer-const": 2,
+      "quotes": [
+        "error",
+        "single"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ],
+      "space-in-parens": [
+        "error",
+        "never"
+      ],
+      "strict": [
+        2,
+        "never"
+      ]
+    }
   }
 }

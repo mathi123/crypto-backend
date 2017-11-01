@@ -1,15 +1,17 @@
 const Sequelize = require('sequelize');
 const fs = require('fs');
 const path = require('path');
+const logger = require('./logger');
 
 class OrmInitializer{
     initialize(configuration){
+        logger.info('Initializing ORM');
         this.configuration = configuration;
-
         this.startSequelize();
     }
 
     startSequelize(){
+        logger.info('Starting sequelize');
         const database = process.env.POSTGRES_DB || this.configuration.database;
         const username = process.env.POSTGRES_USER || this.configuration.username;
         const password = process.env.POSTGRES_PASSWORD || this.configuration.password;
@@ -19,6 +21,7 @@ class OrmInitializer{
     }
 
     loadModule(moduleName) {
+        logger.info(`ORM is loading ${moduleName} module`);
         this.initializeModuleModels(moduleName);
         this.createModels(moduleName);
         this.createModelAssociations(moduleName);

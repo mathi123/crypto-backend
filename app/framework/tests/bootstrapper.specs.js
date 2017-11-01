@@ -2,13 +2,12 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const ConfigurationLoader = require('../configuration-loader');
 const Bootstrapper = require('../bootstrapper');
-const OrmInitializer = require('../orm-initializer');
 const Server = require('../server');
 const fs = require('fs');
 
 describe.skip('Bootstrapper', () => {
     let bootstrapper, configurationLoadStub;
-    let stubs = [];
+    const stubs = [];
     const ormConfig = {
         test: 'test',
     };
@@ -21,7 +20,7 @@ describe.skip('Bootstrapper', () => {
     it('loads the configuration file', async () => {
         // Assert
         configurationLoadStub = sinon.stub(ConfigurationLoader.prototype, 'load');
-        configurationLoadStub.returns({ configKey: 'test', orm: ormConfig , modules: [ 'core' ] });
+        configurationLoadStub.returns({ configKey: 'test', orm: ormConfig, modules: [ 'core' ] });
 
         // Act
         try{
@@ -37,7 +36,7 @@ describe.skip('Bootstrapper', () => {
 
     it('builds a server instance', async () => {
         // Act
-        let server = await bootstrapper.run({ runMigrationsOnStartUp: false });
+        const server = await bootstrapper.run({ runMigrationsOnStartUp: false });
 
         // Assert
         expect(server).to.be.instanceOf(Server);

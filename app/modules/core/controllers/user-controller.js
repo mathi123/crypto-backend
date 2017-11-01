@@ -10,7 +10,6 @@ class UserController{
 
     buildRoutes(app){
         var createUserRoute = `/${this.routePrefix}/user`;
-        console.info("building user route:" + createUserRoute);
         app.post(createUserRoute, (req, res, next) => this.createUser(req, res).catch(next));
 
         var validateUserRoute = `/${this.routePrefix}/user/validate`;

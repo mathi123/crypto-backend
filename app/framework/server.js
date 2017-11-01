@@ -4,25 +4,24 @@ const expressValidator = require('express-validator');
 const HttpStatus = require('http-status-codes');
 const cors = require('cors');
 const socketIo = require('socket.io');
-const http = require('http');
 const SocketManager = require('./socket-manager');
 
-class Server{
-    constructor(configuration){
+class Server {
+    constructor(configuration) {
         this.port = configuration.port || 3000;
         this.routePrefix = configuration.routePrefix || 'api';
         this.debug = configuration.debug || false;
     }
 
-    stop(){
+    stop() {
         this.server.close();
     }
 
-    start(){
+    start() {
         this.buildFallbackRoute();
 
         this.server = this.app.listen(this.port, () => {
-            if(this.debug){
+            if (this.debug) {
                 console.info('listening on port ' + this.port);
             }
         });
@@ -36,23 +35,23 @@ class Server{
         this.initializeSockeIo();
     }
 
-    buildFallbackRoute(){
+    buildFallbackRoute() {
         this.app.use((err, req, res, next) => this.exceptionHandler(err, req, res));
     }
 
     exceptionHandler(err, req, res) {
-        if(this.debug){
+        if (this.debug) {
             console.error(err);
         }
         res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    initializeExpress(){
+    initializeExpress() {
         this.app = initializeExpressApplication();
     }
 
-    initializeSockeIo(){
-        let socketManager = new SocketManager();
+    initializeSockeIo() {
+        const socketManager = new SocketManager();
 
         this.io = socketIo.listen({
             path: '/socket',
@@ -61,20 +60,20 @@ class Server{
             //pingInterval: 10000,
             //pingTimeout: 5000,
             //cookie: false
-          });
+        });
 
         socketManager.initialize(this.io);
 
         SocketManager.Current = socketManager;
     }
 
-    initializeMiddleWares(){
+    initializeMiddleWares() {
         this.enableCorsMiddleWare();
         this.enableJsonParserMiddleWare();
         this.enableValidationMiddleware();
     }
 
-    enableCorsMiddleWare(){
+    enableCorsMiddleWare() {
         const corsOptions = {
             allowedHeaders: ['Content-Type', 'Authorization', 'Location', 'X-Total-Count'],
             exposedHeaders: ['Content-Type', 'Authorization', 'Location', 'X-Total-Count'],
@@ -83,16 +82,16 @@ class Server{
         this.app.use(corsMiddleWare);
     }
 
-    enableValidationMiddleware(){
+    enableValidationMiddleware() {
         this.app.use(expressValidator());
     }
 
-    enableJsonParserMiddleWare(){
+    enableJsonParserMiddleWare() {
         const bodyParserMiddleWare = bodyParser.json();
         this.app.use(bodyParserMiddleWare);
     }
 
-    getApp(){
+    getApp() {
         return this.app;
     }
 }
