@@ -3,7 +3,7 @@
   "routePrefix": "api",
   "debug": true,
   "runMigrationsOnStartUp": true,
-  "runJobrunnerOnStartup": false,
+  "runJobrunnerOnStartup": true,
   "orm": {
     "username": "proxyuser",
     "password": "w47izFwg2KOIJEJh",
