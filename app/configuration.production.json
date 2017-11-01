@@ -5,10 +5,10 @@
   "runMigrationsOnStartUp": true,
   "runJobrunnerOnStartup": false,
   "orm": {
-    "username": "postgres",
+    "username": "proxyuser",
     "password": "w47izFwg2KOIJEJh",
     "database": "postgres",
-    "host": "146.148.97.220",
+    "host": "127.0.0.1",
     "port": 5432,
     "dialect": "postgres",
     "logging": false
