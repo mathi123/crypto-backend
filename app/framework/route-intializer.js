@@ -49,11 +49,11 @@ class RouteInitializer{
             }
         }
 
-        /*for(const controller of this.controllers){
+        for(const controller of this.controllers){
             if(controller.buildAuthenticatedRoutes){
                 controller.buildAuthenticatedRoutes(app);
             }
-        }*/
+        }
     }
 }
 
