@@ -1,17 +1,17 @@
+const logger = require('./logger');
 const path = require('path');
 const fs = require('fs');
-const logger = require('./logger');
 
 class RouteInitializer{
 
-    constructor(application, routePrefix){
+    constructor(application, configuration){
         this.application = application;
-        this.routePrefix = routePrefix;
+        this.configuration = configuration;
         this.controllers = [];
     }
 
     loadModule(moduleName){
-        logger.info(`Initializing routes for ${moduleName} module.`);
+        logger.info(`initializing routes for ${moduleName} module.`);
         const modulePath = path.join(__dirname, '../modules', moduleName);
         const controllersDirPath = path.join(modulePath, 'controllers');
 
@@ -28,7 +28,7 @@ class RouteInitializer{
         const routeBuilderPath = path.join(controllersDirPath, file);
         const RouteBuilder = require(routeBuilderPath);
 
-        const controller = new RouteBuilder(this.routePrefix);
+        const controller = new RouteBuilder(this.configuration);
         controllers.push(controller);
     }
 

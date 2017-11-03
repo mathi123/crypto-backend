@@ -1,11 +1,9 @@
-const uuid = require('uuid/v4');
-const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const FileManager = require('../managers/file-manager');
 
 class FileController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/file`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/file`;
         this.manager = new FileManager();
     }
 

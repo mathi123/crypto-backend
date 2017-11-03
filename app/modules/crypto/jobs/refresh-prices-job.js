@@ -4,8 +4,7 @@ const PriceManager = require('../managers/price-manager');
 const JobProgressManager = require('../managers/job-progress-manager');
 const Logger = require('../managers/logger');
 
-class RefreshPricesJob{
-    
+class RefreshPricesJob{  
     constructor(configuration){
         this.jobName = 'RefreshPricesJob';
         this.priceCheckInSeconds = configuration.priceCheckInSeconds;
@@ -58,8 +57,12 @@ class RefreshPricesJob{
     }
 
     async refreshPricesAsync(unixTs){
-        let currencies = await models.Currency.findAll();
-        let coins = await models.Coin.findAll();
+        let currencies = await models.Currency.find();
+        let coins = await models.Coin.findAll({
+            where: {
+                isActive: true
+            }
+        });
 
         let prices = await this.priceManager.getPricesForCurrencies([unixTs], coins, currencies);
 

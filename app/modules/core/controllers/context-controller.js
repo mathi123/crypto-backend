@@ -1,8 +1,8 @@
 const models = require('../models');
 
 class ContextController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/context`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/context`;
     }
 
     buildAuthenticatedRoutes(app) {

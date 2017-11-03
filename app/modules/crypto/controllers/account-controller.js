@@ -6,8 +6,8 @@ const AccountManager = require("../managers/account-manager");
 const TransactionManager = require("../managers/transaction-manager");
  
 class AccountController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/account`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/account`;
         this.manager = new AccountManager();
         this.transactionManager = new TransactionManager();
     }

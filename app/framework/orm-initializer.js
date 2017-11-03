@@ -1,23 +1,24 @@
+const logger = require('./logger');
 const Sequelize = require('sequelize');
 const fs = require('fs');
 const path = require('path');
-const logger = require('./logger');
 
 class OrmInitializer{
     initialize(configuration){
-        logger.info('Initializing ORM');
+        logger.info('initializing ORM');
         this.configuration = configuration;
         this.startSequelize();
     }
 
     startSequelize(){
-        logger.info('Starting sequelize');
+        logger.info('starting sequelize');
         const database = process.env.POSTGRES_DB || this.configuration.database;
         const username = process.env.POSTGRES_USER || this.configuration.username;
         const password = process.env.POSTGRES_PASSWORD || this.configuration.password;
         const config = this.configuration;
 
         this.sequelize = new Sequelize(database, username, password, config);
+        logger.info('sequelize started');
     }
 
     loadModule(moduleName) {

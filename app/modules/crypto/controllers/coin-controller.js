@@ -1,15 +1,14 @@
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
-const bcrypt = require('bcrypt');
 const JobRunner = require('../../../framework/job-runner');
 const Logger = require('../managers/logger');
 const sequelize = require('sequelize');
 
 class CoinController{
-    constructor(routePrefix){
-        this.apiPrefix = routePrefix;
-        this.routePrefix = `/${routePrefix}/coin`;
+    constructor(configuration){
+        this.apiPrefix = configuration.routePrefix;
+        this.routePrefix = `/${this.apiPrefix}/coin`;
         this.logger = new Logger();
     }
 

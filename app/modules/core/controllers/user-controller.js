@@ -1,11 +1,12 @@
+const logger = require('../../../framework').logger;
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const bcrypt = require('bcrypt');
 
 class UserController{
-    constructor(routePrefix){
-        this.routePrefix = routePrefix;
+    constructor(configuration){
+        this.routePrefix = configuration.routePrefix;
     }
 
     buildRoutes(app){
@@ -125,7 +126,7 @@ class UserController{
         await models.User.create(user);
       
         res.location(`/${this.routePrefix}/user/${ user.id }`);
-        res.sendStatus(HttpStatus.CREATED);
+        res.sendStatus(HttpStatus.OK);
     }
 
     async deleteUser(req, res) {
@@ -151,7 +152,7 @@ class UserController{
             updatedAt: user.updatedAt,
             _links : {
                 self: `/${this.routePrefix}/user/${ user.id }`,
-            }
+            },
         };
     }
 }

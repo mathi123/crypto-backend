@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const JobManager = require('pg-boss');
 const SynchronizeErc20CoinsJob = require('../modules/crypto/jobs/synchronize-erc20-coin-jobs');
 const ImportErc20CoinJob = require('../modules/crypto/jobs/import-erc20-coin-job');
@@ -8,6 +9,7 @@ const ImportEthereumBlocksJob = require('../modules/crypto/jobs/import-ethereum-
 class JobRunner {
     initialize(configuration) {
         this.configuration = configuration;
+        logger.info('Initializing job runner.');
 
         const options = {
             host: configuration.orm.host,
@@ -20,20 +22,22 @@ class JobRunner {
             this.jobManager = new JobManager(options);
         }
         catch (error) {
-            console.error('could not create job runner');
-            console.error(error);
+            logger.error('Initialization of jobrunner failed.');
+            logger.error(error);
         }
 
     }
 
     start() {
+        logger.info('Starting job runner.');
         if (this.jobManager === null || this.jobManager == undefined) return;
 
         this.jobManager.start()
-            .then((runner) => this.queueJobs())
-            .error((err) => console.error('could not start job runner'));
+            .then(() => this.queueJobs())
+            .error(() => logger.error('could not start job runner: '));
     }
 
+    // ToDo: dont import jobs manually
     queueJobs() {
         const syncCoin = new SynchronizeErc20CoinsJob();
         const importJob = new ImportErc20CoinJob(this.configuration);
@@ -52,7 +56,6 @@ class JobRunner {
         refreshPricesJob.enqueue(this.jobManager);
         importEthereumBlocksJob.enqueue(this.jobManager);
     }
-
 }
 
 module.exports = JobRunner;

@@ -5,8 +5,8 @@ const HttpStatus = require('http-status-codes');
 const AccountSummaryManager = require("../managers/account-summary-manager");
  
 class AccountSummaryController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/account-summary`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/account-summary`;
         this.manager = new AccountSummaryManager();
     }
 

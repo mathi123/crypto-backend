@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const Umzug = require('umzug');
 const fs = require('fs');
 const path = require('path');
@@ -9,6 +10,7 @@ class DatabaseMigrator{
     }
 
     async executeModuleMigrations(moduleName){
+        logger.info(`executing migrations for ${moduleName} module`);
         const migrationsPath = path.join(__dirname, '../modules', moduleName, 'migrations');
 
         if(fs.existsSync(migrationsPath)){
@@ -33,9 +35,10 @@ class DatabaseMigrator{
         const umzug = new Umzug(config);
         try{
             const migrations = await umzug.up();
-            // ToDo console.log(`the following migrations where run: ${JSON.stringify(migrations)}`);
+            logger.info(`the following migrations where run: ${JSON.stringify(migrations)}`);
         }catch(err){
-            console.log(err);
+            logger.error('some migrations failed');
+            logger.error(err);
         }
     }
 }

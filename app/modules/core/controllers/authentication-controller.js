@@ -1,12 +1,12 @@
 const models = require('../models');
-const secretKey = 'KJ2kjJK32LKJA\'/.SD[]';
 const HttpStatus = require('http-status-codes');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 class AuthenticationController {
-    constructor(routePrefix) {
-        this.routePrefix = routePrefix;
+    constructor(configuration) {
+        this.secret = configuration.secret;
+        this.routePrefix = configuration.routePrefix;
         this.tokenRoute = `/${this.routePrefix}/token`;
     }
 
@@ -78,7 +78,7 @@ class AuthenticationController {
 
     async getBearerHeader(user) {
         const payload = this.buildTokenPayload(user);
-        const token = await jwt.sign(payload, secretKey);
+        const token = await jwt.sign(payload, this.secret);
         return this.buildBearerHeaderContent(token);
     }
 
@@ -94,11 +94,11 @@ class AuthenticationController {
     }
 
     verifyToken(token) {
-        return jwt.verify(token, secretKey);
+        return jwt.verify(token, this.secret);
     }
 
     getTokenPayload(token) {
-        return jwt.decode(token, secretKey);
+        return jwt.decode(token, this.secret);
     }
 
     trimRoute(route) {

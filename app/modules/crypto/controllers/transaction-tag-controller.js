@@ -1,12 +1,11 @@
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
-const bcrypt = require('bcrypt');
-const AccountManager = require("../managers/account-manager");
+const AccountManager = require('../managers/account-manager');
 
 class TransactionTagController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/account/:accountId/transaction/:transactionId/tag`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/account/:accountId/transaction/:transactionId/tag`;
         this.accountManager = new AccountManager();
     }
 
@@ -25,19 +24,19 @@ class TransactionTagController{
 
         if(account === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
-        }else{   
+        }else{
             const records = await models.TransactionTag.all({
-                where: { 
-                    transactionId: transactionId
+                where: {
+                    transactionId,
                 },
                 include: [
                     {
                         model: models.Transaction,
-                        where: { 
-                            accountId: accountId
-                         }
-                    }
-                ]
+                        where: {
+                            accountId,
+                        },
+                    },
+                ],
             });
 
             res.json(records.map(u => this.exporter(u, accountId)));
@@ -54,18 +53,18 @@ class TransactionTagController{
         }else{
             const id = req.params.id;
             const record = await models.TransactionTag.findOne({
-                where: { 
-                    id: id,
-                    transactionId: transactionId
+                where: {
+                    id,
+                    transactionId,
                 },
                 include: [
                     {
                         model: models.Transaction,
-                        where: { 
-                            accountId: accountId
-                         }
-                    }
-                ]
+                        where: {
+                            accountId,
+                        },
+                    },
+                ],
             });
 
             if(record === null){
@@ -87,18 +86,18 @@ class TransactionTagController{
             const id = req.params.id;
             const data = req.body;
             const record = await models.TransactionTag.findOne({
-                where: { 
-                    id: id,
-                    transactionId: transactionId
+                where: {
+                    id,
+                    transactionId,
                 },
                 include: [
                     {
                         model: models.Transaction,
-                        where: { 
-                            accountId: accountId
-                         }
-                    }
-                ]
+                        where: {
+                            accountId,
+                        },
+                    },
+                ],
             });
 
             if(record === null){
@@ -106,10 +105,10 @@ class TransactionTagController{
             }else{
                 const values = {
                     note: data.note,
-                    amount: data.amount
+                    amount: data.amount,
                 };
 
-                await models.TransactionTag.update(values, { where: { id: id }, fields: ['note', 'amount'] });
+                await models.TransactionTag.update(values, { where: { id }, fields: ['note', 'amount'] });
 
                 res.location(`/${this.routePrefix}/${ id }`.replace(':accountId', accountId).replace(':transactionId', transactionId));
                 res.sendStatus(HttpStatus.NO_CONTENT);
@@ -129,14 +128,14 @@ class TransactionTagController{
 
             const record = {
                 id: uuid(),
-                transactionId: transactionId,
+                transactionId,
                 tagId: data.tagId,
                 note: data.note,
-                amount: data.amount
+                amount: data.amount,
             };
 
             await models.TransactionTag.create(record);
-        
+
             res.location(`${this.routePrefix}/${ record.id }`.replace(':accountId', accountId).replace(':transactionId', transactionId));
             res.sendStatus(HttpStatus.CREATED);
         }
@@ -153,27 +152,27 @@ class TransactionTagController{
             const id = req.params.id;
             const data = req.body;
             const record = await models.TransactionTag.findOne({
-                where: { 
-                    id: id,
-                    transactionId: transactionId
+                where: {
+                    id,
+                    transactionId,
                 },
                 include: [
                     {
                         model: models.Transaction,
-                        where: { 
-                            accountId: accountId
-                         }
-                    }
-                ]
+                        where: {
+                            accountId,
+                        },
+                    },
+                ],
             });
 
             if(record === null){
                 res.sendStatus(HttpStatus.NOT_FOUND);
             }else{
                 await models.TransactionTag.destroy({
-                    where: { 
-                        id: id 
-                    }
+                    where: {
+                        id,
+                    },
                 });
 
                 res.sendStatus(HttpStatus.NO_CONTENT);
@@ -182,7 +181,7 @@ class TransactionTagController{
     }
 
     exporter(record, accountId) {
-        let result = {
+        const result = {
             ts: record.ts,
             amount: record.amount,
             note: record.note,
@@ -190,7 +189,7 @@ class TransactionTagController{
             updatedAt: record.updatedAt,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`.replace(':accountId', accountId).replace(':transactionId', record.transactionId),
-            }
+            },
         };
 
         return result;

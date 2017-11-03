@@ -1,11 +1,10 @@
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
-const bcrypt = require('bcrypt');
 
 class TagController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/tag`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/tag`;
     }
 
     buildAuthenticatedRoutes(app) {

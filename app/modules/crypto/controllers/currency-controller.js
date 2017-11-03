@@ -1,14 +1,16 @@
+const logger = require('../../../framework/logger');
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
-const bcrypt = require('bcrypt');
 
 class CurrencyController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/currency`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/currency`;
     }
 
     buildRoutes(app){
+        logger.info(`building public routes for ${this.routePrefix}`);
+        
         app.get(this.routePrefix, (req, res, next) => this.getAll(req, res).catch(next));
         return [this.routePrefix];
     }

@@ -5,6 +5,6 @@ const logger = new Logger({
     'level': 'verbose',
 });
 const consoleTransport = winston.transports.Console;
-logger.add(consoleTransport);
+logger.add(consoleTransport, { colorize: true });
 
 module.exports = logger;

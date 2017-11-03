@@ -30,16 +30,16 @@ class Bootstrapper {
         const configurationLoader = new ConfigurationLoader();
         const configFilePath = path.join(__dirname, '../configuration.json');
         logger.info('Loading config file', configFilePath);
-        
+
         this.configuration = configurationLoader.load(configFilePath, configurationOverrides);
     }
 
     async runMigrations() {
         if (this.configuration.runMigrationsOnStartUp) {
-            this.migrationRunner = new DatabaseMigrator(this.configuration.orm, this.ormInitializer.sequelize);
+            const migrationRunner = new DatabaseMigrator(this.configuration.orm, this.ormInitializer.sequelize);
 
-            for (let module of this.configuration.modules) {
-                await this.migrationRunner.executeModuleMigrations(module);
+            for (const module of this.configuration.modules) {
+                await migrationRunner.executeModuleMigrations(module);
             }
         }
     }
@@ -64,8 +64,7 @@ class Bootstrapper {
 
     buildRoutes() {
         const app = this.server.getApp();
-        const routPrefix = this.configuration.routePrefix;
-        const routeInitializer = new RouteInitializer(app, routPrefix);
+        const routeInitializer = new RouteInitializer(app, this.configuration);
         const modules = this.configuration.modules;
         modules.forEach((module) => routeInitializer.loadModule(module));
         routeInitializer.bootstrap(app);

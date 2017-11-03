@@ -1,9 +1,9 @@
-
+const logger = require('./logger');
 const jwt = require('jsonwebtoken');
-const secretKey = 'KJ2kjJK32LKJA\'/.SD[]';
 
 class SocketManager{
-    constructor(){
+    constructor(configuration){
+        this.configuration = configuration;
         this.sockets = [];
     }
 
@@ -12,13 +12,13 @@ class SocketManager{
     }
 
     socketConnected(socket){
-        let token = socket.handshake.query.token;
+        const token = socket.handshake.query.token;
 
         if(!this.verifyToken(token)){
-            console.log(`Invalid token, disconnecting socket.`);
+            logger.info('Invalid token, disconnecting socket.');
             socket.disconnect(true);
         }else{
-            let payload = this.getTokenPayload(token);
+            const payload = this.getTokenPayload(token);
             this.addSocket(socket, payload.sub);
         }
         // socket.emit('news', { hello: 'world' });
@@ -28,8 +28,8 @@ class SocketManager{
     }
 
     emitForUserId(userId, event, payload){
-        console.log(`emitting for user ${userId} users: ${event}: ${JSON.stringify(payload)}.`)
-        for(let socket of this.sockets){
+        logger.info(`emitting for user ${userId} users: ${event}: ${JSON.stringify(payload)}.`);
+        for(const socket of this.sockets){
             if(socket.userId === userId){
                 this.emit(socket.socket, event, payload);
             }
@@ -37,33 +37,32 @@ class SocketManager{
     }
 
     emitForAll(event, payload){
-        console.log(`emitting for all users: ${event}: ${JSON.stringify(payload)}.`)
-        for(let socket of this.sockets){
+        logger.info(`emitting for all users: ${event}: ${JSON.stringify(payload)}.`);
+        for(const socket of this.sockets){
             this.emit(socket.socket, event, payload);
         }
     }
 
     emit(socket, event, payload){
-        console.log(`emitting event ${event}`);
+        logger.info(`emitting event ${event}`);
         socket.emit(event, payload);
     }
-    
+
     addSocket(socket, userId){
-        console.log("user connected: " +  userId);
+        logger.info(`user connected: ${userId}`);
         this.sockets.push({
-            userId: userId,
-            socket: socket
+            userId,
+            socket,
         });
     }
 
     verifyToken(token) {
-        return jwt.verify(token, secretKey);
+        return jwt.verify(token, this.configuration.secret);
     }
 
     getTokenPayload(token) {
-        return jwt.decode(token, secretKey);
+        return jwt.decode(token, this.configuration.secret);
     }
-
 }
 
 module.exports = SocketManager;

@@ -1,13 +1,11 @@
-const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
-const bcrypt = require('bcrypt');
-const AccountManager = require("../managers/account-manager");
-const TransactionManager = require("../managers/transaction-manager");
+const AccountManager = require('../managers/account-manager');
+const TransactionManager = require('../managers/transaction-manager');
 
 class TransactionController{
-    constructor(routePrefix){
-        this.routePrefix = `/${routePrefix}/account/:accountId/transaction`;
+    constructor(configuration){
+        this.routePrefix = `/${configuration.routePrefix}/account/:accountId/transaction`;
         this.accountManager = new AccountManager();
         this.manager = new TransactionManager();
     }
@@ -26,7 +24,7 @@ class TransactionController{
 
         if(account === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
-        }else{   
+        }else{
             const records = await this.manager.getAll(accountId);
             res.json(records.map(u => this.exporter(u)));
         }
@@ -60,10 +58,10 @@ class TransactionController{
             const id = req.params.id;
             const data = req.body;
             const record = await models.Transaction.findOne({
-                where: { 
-                    id: id,
-                    accountId: accountId
-                }
+                where: {
+                    id,
+                    accountId,
+                },
             });
 
             if(record === null){
@@ -73,7 +71,7 @@ class TransactionController{
                     note: data.note,
                 };
 
-                await models.Transaction.update(values, { where: { id: id }, fields: ['note'] });
+                await models.Transaction.update(values, { where: { id }, fields: ['note'] });
 
                 res.location(`/${this.routePrefix}/${ id }`.replace(':accountId', accountId));
                 res.sendStatus(HttpStatus.NO_CONTENT);
@@ -102,7 +100,7 @@ class TransactionController{
             };
 
             await models.Transaction.create(coin);
-        
+
             res.location(`${this.routePrefix}/${ coin.id }`);*/
             res.sendStatus(HttpStatus.CREATED);
         }
@@ -117,15 +115,15 @@ class TransactionController{
         }else{
             if(!req.isAdmin){
                 res.sendStatus(HttpStatus.UNAUTHORIZED);
-                return; 
+                return;
             }
 
             const id = req.params.id;
 
             await models.Transaction.destroy({
-                where: { 
-                    id: id 
-                }
+                where: {
+                    id,
+                },
             });
 
             res.sendStatus(HttpStatus.NO_CONTENT);
@@ -134,7 +132,7 @@ class TransactionController{
 
     exporter(record) {
 
-        let result = {
+        const result = {
             id: record.id,
             transactionId: record.transactionId,
             ts: record.ts,
@@ -144,7 +142,7 @@ class TransactionController{
             updatedAt: record.updatedAt,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`.replace(':accountId', record.accountId),
-            }
+            },
         };
 
         return result;

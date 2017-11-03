@@ -1,7 +1,6 @@
 {
   "port": 3000,
   "routePrefix": "api",
-  "debug": true,
   "runMigrationsOnStartUp": true,
   "runJobrunnerOnStartup": true,
   "orm": {
@@ -18,5 +17,6 @@
     "crypto"
   ],
   "ethereumApi": "http://127.0.0.1:8545",
-  "priceCheckInSeconds": 120
+  "priceCheckInSeconds": 120,
+  "secret": "KJ2kjJK32LKJA\\'/.SD[]"
 }
