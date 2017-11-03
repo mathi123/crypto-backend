@@ -16,7 +16,7 @@
     "core",
     "crypto"
   ],
-  "ethereumApi": "http://10.52.2.18:8545",
+  "ethereumApi": "http://10.55.246.64:8545",
   "priceCheckInSeconds": 120,
   "secret": "KJ2kjJK32LKJA\\'/.SD[]"
 }
