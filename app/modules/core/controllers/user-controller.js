@@ -4,12 +4,12 @@ const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const bcrypt = require('bcrypt');
 
-class UserController{
-    constructor(configuration){
+class UserController {
+    constructor(configuration) {
         this.routePrefix = configuration.routePrefix;
     }
 
-    buildRoutes(app){
+    buildRoutes(app) {
         var createUserRoute = `/${this.routePrefix}/user`;
         app.post(createUserRoute, (req, res, next) => this.createUser(req, res).catch(next));
 
@@ -29,7 +29,7 @@ class UserController{
     async validate(req, res) {
         var email = req.query.email;
 
-        if(email === null || email === undefined){
+        if (email === null || email === undefined) {
             res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             return;
         }
@@ -40,7 +40,7 @@ class UserController{
             }
         });
 
-        if(userCount > 0){
+        if (userCount > 0) {
             res.sendStatus(HttpStatus.CONFLICT);
             return;
         }
@@ -49,7 +49,7 @@ class UserController{
     }
 
     async getAllUsers(req, res) {
-        if(!req.isAdmin){
+        if (!req.isAdmin) {
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
         }
@@ -62,7 +62,7 @@ class UserController{
     async getUserById(req, res) {
         const id = req.params.id;
 
-        if(!(req.isAdmin || req.userId === id)){
+        if (!(req.isAdmin || req.userId === id)) {
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
         }
@@ -73,16 +73,16 @@ class UserController{
             }
         });
 
-        if(user === null){
+        if (user === null) {
             res.sendStatus(HttpStatus.NOT_FOUND);
-        }else{
+        } else {
             res.json(this.userExporter(user));
         }
     }
 
     async updateUser(req, res) {
         const id = req.params.id;
-        if(req.userId !== id){
+        if (req.userId !== id) {
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
         }
@@ -94,17 +94,17 @@ class UserController{
             }
         });
 
-        if(user === null){
+        if (user === null) {
             res.sendStatus(HttpStatus.NOT_FOUND);
-        }else{
+        } else {
             // update user
             const values = {
-                name : userData.name,
+                name: userData.name,
                 email: userData.email,
                 coinId: userData.coinId
             };
 
-            await models.User.update(values, { where: { id }, fields: ['name', 'email', 'coinId'] });
+            await models.User.update(values, {where: {id}, fields: ['name', 'email', 'coinId']});
 
             res.location(`/${this.routePrefix}/user/${ id }`);
             res.sendStatus(HttpStatus.NO_CONTENT);
@@ -124,20 +124,20 @@ class UserController{
         };
 
         await models.User.create(user);
-      
-        res.location(`/${this.routePrefix}/user/${ user.id }`);
-        res.sendStatus(HttpStatus.OK);
+
+        //res.location(`/${this.routePrefix}/user/${ user.id }`);
+        res.sendStatus(HttpStatus.CREATED);
     }
 
     async deleteUser(req, res) {
-        if(!req.isAdmin){
+        if (!req.isAdmin) {
             res.sendStatus(HttpStatus.UNAUTHORIZED);
-            return; 
+            return;
         }
 
         const id = req.params.id;
 
-        await models.User.destroy({ id });
+        await models.User.destroy({id});
 
         res.sendStatus(HttpStatus.NO_CONTENT);
     }
@@ -150,7 +150,7 @@ class UserController{
             isAdmin: user.isAdmin,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
-            _links : {
+            _links: {
                 self: `/${this.routePrefix}/user/${ user.id }`,
             },
         };
