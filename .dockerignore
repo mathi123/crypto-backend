@@ -4,3 +4,5 @@ node_modules
 coverage
 
 /app/configuration.json
+
+package.json

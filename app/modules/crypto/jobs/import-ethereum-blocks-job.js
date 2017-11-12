@@ -1,9 +1,6 @@
 const logger = require('../../../framework/logger');
 const Web3 = require('web3');
-const BigNumber = require('bignumber.js');
-const erc20 = require('../ethereum/erc20-abi');
 const models = require('../models');
-const uuid = require('uuid/v4');
 const JobProgressManager = require('../managers/job-progress-manager');
 const Logger = require('../managers/logger');
 
