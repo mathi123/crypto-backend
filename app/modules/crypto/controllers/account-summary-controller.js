@@ -19,7 +19,12 @@ class AccountSummaryController{
     exporter(record) {
         const result = {
             id: record.id,
-            coinId: record.coinId,
+            coin: {
+                id: record.coinId,
+                description: record.Coin.description,
+                code: record.Coin.code,
+                fileId: record.Coin.fileId,
+            },
             description: record.description,
             color: record.color,
             address: record.address,

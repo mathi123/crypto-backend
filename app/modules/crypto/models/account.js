@@ -31,7 +31,7 @@ module.exports = function (seq, Sequelize) {
         state: {
             type: Sequelize.ENUM('new', 'importing', 'error', 'done'),
             defaultValue: 'new',
-            allowNull: false
+            allowNull: false,
         },
         description: {
             type: Sequelize.STRING,
@@ -46,16 +46,29 @@ module.exports = function (seq, Sequelize) {
             allowNull: false,
         },
         note: {
-            type: Sequelize.STRING
+            type: Sequelize.STRING,
         },
         transactionType: {
             type: Sequelize.ENUM('auto', 'manual', 'bittrex'),
             defaultValue: 'auto',
-            allowNull: false
+            allowNull: false,
         },
     }, {
         tableName: 'Account',
     });
+
+    Account.associate = function(models){
+        const Coin = models['crypto']['Coin'];
+
+        Coin.hasMany(Account, {
+            foreignKey: 'coinId',
+        });
+
+        Account.belongsTo(Coin, {
+            foreignKey: 'coinId',
+        });
+    };
+
 
     Account.addHook('beforeCreate', record => {
         if (record.id === null) {
