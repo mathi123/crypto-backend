@@ -1,9 +1,5 @@
-const uuid = require('uuid/v4');
-const models = require('../models');
-const HttpStatus = require('http-status-codes');
+const AccountSummaryManager = require('../managers/account-summary-manager');
 
-const AccountSummaryManager = require("../managers/account-summary-manager");
- 
 class AccountSummaryController{
     constructor(configuration){
         this.routePrefix = `/${configuration.routePrefix}/account-summary`;
@@ -21,7 +17,7 @@ class AccountSummaryController{
     }
 
     exporter(record) {
-        let result = {
+        const result = {
             id: record.id,
             coinId: record.coinId,
             description: record.description,
@@ -33,7 +29,7 @@ class AccountSummaryController{
             updatedAt: record.updatedAt,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`,
-            }
+            },
         };
 
         return result;

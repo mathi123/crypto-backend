@@ -24,12 +24,14 @@ class ImportErc20CoinJob{
     }
 
     subscribe(jobManager){
+        this.jobManager = jobManager;
         jobManager.subscribe(this.jobName, (data) => this.importErc20Coin(data))
             .then(() => this.logger.verbose("Subscribed to Job", this.jobName))
             .error((err) => this.logger.error(`Subscribing to job failed: ${this.jobName}.`, err));
     }
 
     async importErc20Coin(data){
+        this.jobManager.unsubscribe(this.jobName);
         await this.jobProgressManager.start(data.id, this.jobName, data.data);
 
         try{
