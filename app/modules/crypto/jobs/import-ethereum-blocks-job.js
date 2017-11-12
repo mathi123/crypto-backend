@@ -75,8 +75,14 @@ class ImportEthereumBlocksJob{
     async getLastBlock(web3){
         const result = await web3.eth.isSyncing();
 
-        if(result.currentBlock === NaN){
-            throw new Exception('could not get last block number.');
+        if(!result.currentBlock){
+            const lastBlock = await web3.eth.getBlockNumber();
+
+            if(!lastBlock){
+                throw new Error('could not get last block number.');
+            }else{
+                return lastBlock;
+            }
         }
 
         return result.currentBlock;
