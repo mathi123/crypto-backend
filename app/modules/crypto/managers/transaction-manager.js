@@ -1,60 +1,69 @@
+const logger = require('../../../framework/logger');
 const models = require('../models');
 const uuid = require('uuid/v4');
-const CoinApiFactory = require('../coin-apis/coin-api-factory');
-const SocketManager = require("../../../framework/socket-manager");
+const CoinManager = require('./coin-manager');
+const SocketManager = require('../../../framework/socket-manager');
 
 class TransactionManager{
+    constructor(configuration){
+        this.chainManager = new CoinManager(configuration);
+    }
+
     async getAll(accountId){
         return models.Transaction.all({
-            where: { 
-                accountId: accountId
-            }
+            where: {
+                accountId,
+            },
         }); // Todo order by timestamp
     }
-    
+
     async getById(id, accountId){
         return await models.Transaction.findOne({
-            where: { 
-                id: id,
-                accountId: accountId
-            }
+            where: {
+                id,
+                accountId,
+            },
         });
     }
 
     async loadTransactions(accountId){
-        console.log("loading transactions now");
-        let account = await models.Account.findOne({
+        logger.verbose(`loading transactions for account ${accountId}`);
+        const account = await models.Account.findOne({
             where: {
-                id: accountId
-            }
+                id: accountId,
+            },
         });
 
         if(account === null){
-            throw new Error("account not found");
+            throw new Error('account not found');
         }
 
-        let factory = await (new CoinApiFactory()).getCoinFactory(account.coinId);
+        const coin = models.Coin.findOne({ where:
+        {
+            id: account.coinId,
+        } });
+        const factory = this.chainManager.getTransactionProvider(coin);
 
-        console.log("getting transactions");
-        let transactions = await factory.getTransactions(account.address);
+        console.log('getting transactions');
+        const transactions = await factory.getTransactionsForAddress(coin, account.address);
 
-        console.log("getting existing transactions");
-        let existingTransactions = await models.Transaction.find({
+        console.log('getting existing transactions');
+        const existingTransactions = await models.Transaction.find({
             where: {
-                accountId: accountId
-            }
+                accountId,
+            },
         }) || [];
 
         await this.merge(accountId, existingTransactions, transactions);
 
-        console.log("io should publish event now.");
-        SocketManager.Current.emitForUserId(account.userId, 'reloadTransactions', { accountId: accountId});
+        console.log('io should publish event now.');
+        SocketManager.Current.emitForUserId(account.userId, 'reloadTransactions', { accountId });
     }
 
     async merge(accountId, existingTransactions, transactions){
-        for(let transaction of transactions){
-            let existing = existingTransactions.filter(e => e.transactionId === transaction.id)[0];
-        
+        for(const transaction of transactions){
+            const existing = existingTransactions.filter(e => e.transactionId === transaction.id)[0];
+
             if(existing === null || existing === undefined){
                 await this.insertTransaction(accountId, transaction);
             }else{
@@ -64,14 +73,14 @@ class TransactionManager{
     }
 
     async insertTransaction(accountId, data){
-        console.log("inserting transaction");
+        console.log('inserting transaction');
 
-        let transaction = {
-            accountId: accountId,
+        const transaction = {
+            accountId,
             id: uuid(),
             transactionId: data.id,
             ts: data.ts,
-            amount: data.value
+            amount: data.value,
         };
 
         await models.Transaction.create(transaction);

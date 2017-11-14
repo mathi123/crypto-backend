@@ -1,20 +1,19 @@
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
-const bcrypt = require('bcrypt');
-const AccountManager = require("../managers/account-manager");
-const TransactionManager = require("../managers/transaction-manager");
- 
+const AccountManager = require('../managers/account-manager');
+const TransactionManager = require('../managers/transaction-manager');
+
 class AccountController{
     constructor(configuration){
         this.routePrefix = `/${configuration.routePrefix}/account`;
-        this.manager = new AccountManager();
+        this.manager = new AccountManager(configuration);
         this.transactionManager = new TransactionManager();
     }
 
     buildAuthenticatedRoutes(app) {
         app.get(this.routePrefix, (req, res, next) => this.getAll(req, res).catch(next));
-        app.get(`${this.routePrefix}/validate`, (req, res, next) => this.validate(req, res));
+        app.get(`${this.routePrefix}/validate`, (req, res, next) => this.validate(req, res).catch(next));
         app.get(`${this.routePrefix }/:id`, (req, res, next) => this.getById(req, res).catch(next));
         app.delete(`${this.routePrefix }/:id`, (req, res, next) => this.remove(req, res).catch(next));
         app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
@@ -42,10 +41,10 @@ class AccountController{
         const id = req.params.id;
         const data = req.body;
         const record = await models.Account.findOne({
-            where: { 
-                id: id,
-                userId: req.userId
-            }
+            where: {
+                id,
+                userId: req.userId,
+            },
         });
 
         if(record === null){
@@ -56,10 +55,10 @@ class AccountController{
                 color: data.color,
                 address: data.address,
                 note: data.note,
-                transactionType: data.transactionType
+                transactionType: data.transactionType,
             };
 
-            await models.Account.update(values, { where: { id: id }, fields: ['description', 'color', 'address', 'note', 'transactionType'] });
+            await models.Account.update(values, { where: { id }, fields: ['description', 'color', 'address', 'note', 'transactionType'] });
 
             // reload transactions but don't wait for the result
             this.transactionManager.loadTransactions(record.id);
@@ -80,11 +79,11 @@ class AccountController{
             color: data.color,
             address: data.address,
             note: data.note,
-            transactionType: data.transactionType
+            transactionType: data.transactionType,
         };
 
         await models.Account.create(record);
-      
+
         // load transactions but don't wait for the result
         this.transactionManager.loadTransactions(record.id);
 
@@ -98,26 +97,34 @@ class AccountController{
 
         if(record === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
-            return; 
+            return;
         }
 
         await models.Account.destroy({
-            where: { 
-                id: id 
-            }
+            where: {
+                id,
+            },
         });
 
         res.sendStatus(HttpStatus.NO_CONTENT);
     }
 
-    validate(req, res) {
-        const isValid = this.manager.validate(req.query.coinId, req.query.address);
+    async validate(req, res) {
+        const result = {};
+        try{
+            const balance = await this.manager.getBalance(req.query.coinId, req.query.address);
+            result.isValid = true;
+            result.balance = balance;
+        }catch(err){
+            result.isValid = false;
+            result.balance = NaN;
+        }
 
-        res.json(isValid);
+        res.json(result);
     }
 
     exporter(record) {
-        let result = {
+        const result = {
             id: record.id,
             coinId: record.coinId,
             description: record.description,
@@ -129,7 +136,7 @@ class AccountController{
             updatedAt: record.updatedAt,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`,
-            }
+            },
         };
 
         return result;

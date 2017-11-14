@@ -57,7 +57,7 @@ class RefreshPricesJob{
     }
 
     async refreshPricesAsync(unixTs){
-        let currencies = await models.Currency.find();
+        let currencies = await models.Currency.findAll();
         let coins = await models.Coin.findAll({
             where: {
                 isActive: true

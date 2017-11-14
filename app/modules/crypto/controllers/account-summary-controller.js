@@ -3,7 +3,7 @@ const AccountSummaryManager = require('../managers/account-summary-manager');
 class AccountSummaryController{
     constructor(configuration){
         this.routePrefix = `/${configuration.routePrefix}/account-summary`;
-        this.manager = new AccountSummaryManager();
+        this.manager = new AccountSummaryManager(configuration);
     }
 
     buildAuthenticatedRoutes(app) {

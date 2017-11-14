@@ -9,7 +9,7 @@ class RefreshAccountSummaryJob{
     
     constructor(configuration){
         this.jobName = 'RefreshAccountSummaryJob';
-        this.accountSummaryManager = new AccountSummaryManager();
+        this.accountSummaryManager = new AccountSummaryManager(configuration);
         this.jobProgressManager = new JobProgressManager();
         this.logger = new Logger();
     }

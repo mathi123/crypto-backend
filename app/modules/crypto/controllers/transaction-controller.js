@@ -6,8 +6,8 @@ const TransactionManager = require('../managers/transaction-manager');
 class TransactionController{
     constructor(configuration){
         this.routePrefix = `/${configuration.routePrefix}/account/:accountId/transaction`;
-        this.accountManager = new AccountManager();
-        this.manager = new TransactionManager();
+        this.accountManager = new AccountManager(configuration);
+        this.manager = new TransactionManager(configuration);
     }
 
     buildAuthenticatedRoutes(app) {

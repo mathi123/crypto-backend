@@ -1,13 +1,14 @@
+const logger = require('../../../framework/logger');
 const models = require('../models');
-const CoinApiFactory = require('../coin-apis/coin-api-factory');
 const uuid = require('uuid/v4');
 const coreModels = require('../../core/models');
 const SocketManager = require('../../../framework/socket-manager');
+const CoinManager = require('./coin-manager');
 
 class AccountSummaryManager{
 
-    constructor(){
-        this.coinFactory = new CoinApiFactory();
+    constructor(configuration){
+        this.chainManager = new CoinManager(configuration);
     }
 
     async getUserAccounts(){
@@ -21,7 +22,7 @@ class AccountSummaryManager{
     }
 
     async refreshAllAccounts(timestamp){
-        console.log('refreshing all account summaries with timestamp '+timestamp);
+        logger.verbose(`refreshing all account summaries with timestamp ${timestamp}`);
         const accounts = await models.Account.findAll();
 
         for(const account of accounts){
@@ -46,11 +47,17 @@ class AccountSummaryManager{
 
         if(price === null) throw new Error('Price not found');
 
-        const factory = await this.coinFactory.getTotalCalculator(account.coinId);
-        const balance = await factory.getBalance(account.address);
+        const coin = await models.Coin.findOne({
+            where: {
+                id: account.coinId,
+            },
+        });
+
+        const chain = this.chainManager.getChainObserver(coin);
+        const balance = await chain.getBalance(coin, account.address);
         await this.createAccountSummary(account, timestamp, balance, price);
 
-        console.log('io should publish event now.');
+        logger.info('io should publish event now.');
         SocketManager.Current.emitForUserId(account.userId, 'reloadTotal', { accountId: account.id });
     }
 
