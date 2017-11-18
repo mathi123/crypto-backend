@@ -6,15 +6,18 @@ const SocketManager = require('../../../framework/socket-manager');
 
 class TransactionManager{
     constructor(configuration){
-        this.chainManager = new CoinManager(configuration);
+        this.coinManager = new CoinManager(configuration);
     }
 
     async getAll(accountId){
-        return models.Transaction.all({
+        return models.Transaction.findAll({
             where: {
                 accountId,
             },
-        }); // Todo order by timestamp
+            order: [
+                ['ts', 'DESC'],
+            ],
+        });
     }
 
     async getById(id, accountId){
@@ -38,17 +41,14 @@ class TransactionManager{
             throw new Error('account not found');
         }
 
-        const coin = models.Coin.findOne({ where:
-        {
-            id: account.coinId,
-        } });
-        const factory = this.chainManager.getTransactionProvider(coin);
+        const coin = await this.coinManager.getById(account.coinId);
+        const factory = this.coinManager.getTransactionProvider(coin);
 
-        console.log('getting transactions');
+        logger.verbose('getting transactions');
         const transactions = await factory.getTransactionsForAddress(coin, account.address);
 
-        console.log('getting existing transactions');
-        const existingTransactions = await models.Transaction.find({
+        logger.verbose('getting existing transactions');
+        const existingTransactions = await models.Transaction.findAll({
             where: {
                 accountId,
             },
@@ -56,7 +56,7 @@ class TransactionManager{
 
         await this.merge(accountId, existingTransactions, transactions);
 
-        console.log('io should publish event now.');
+        logger.verbose('io should publish event now.');
         SocketManager.Current.emitForUserId(account.userId, 'reloadTransactions', { accountId });
     }
 
@@ -73,7 +73,7 @@ class TransactionManager{
     }
 
     async insertTransaction(accountId, data){
-        console.log('inserting transaction');
+        logger.verbose('inserting transaction');
 
         const transaction = {
             accountId,

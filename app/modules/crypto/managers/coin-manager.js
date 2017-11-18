@@ -15,6 +15,13 @@ class CoinManager{
         this.configuration = configuration;
     }
 
+    async getById(coinId){
+        return await models.Coin.findOne({
+            where: {
+                id: coinId,
+            },
+        });
+    }
     async synchronizeCoins(){
         const coins = await models.Coin.findAll({
             where: {

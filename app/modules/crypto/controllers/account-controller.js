@@ -8,7 +8,7 @@ class AccountController{
     constructor(configuration){
         this.routePrefix = `/${configuration.routePrefix}/account`;
         this.manager = new AccountManager(configuration);
-        this.transactionManager = new TransactionManager();
+        this.transactionManager = new TransactionManager(configuration);
     }
 
     buildAuthenticatedRoutes(app) {
