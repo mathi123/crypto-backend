@@ -1,15 +1,20 @@
+const logger = require('../../../framework/logger');
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const JobRunner = require('../../../framework/job-runner');
 const Logger = require('../managers/logger');
 const sequelize = require('sequelize');
+const CoinManager = require('../managers/coin-manager');
+const JobApi = require('./job-api');
 
 class CoinController{
     constructor(configuration){
         this.apiPrefix = configuration.routePrefix;
         this.routePrefix = `/${this.apiPrefix}/coin`;
         this.logger = new Logger();
+        this.coinManager = new CoinManager(configuration);
+        this.jobManager = new JobApi(configuration);
     }
 
     buildAuthenticatedRoutes(app) {
@@ -17,12 +22,36 @@ class CoinController{
         app.get(`${this.routePrefix }/:id`, (req, res, next) => this.getById(req, res).catch(next));
         app.delete(`${this.routePrefix }/:id`, (req, res, next) => this.remove(req, res).catch(next));
         app.post(`${this.routePrefix }/:id/import-erc20`, (req, res, next) => this.importErc20Coin(req, res).catch(next));
+        app.post(`${this.routePrefix }/blockchain/synchronize`, (req, res, next) => this.syncAllChains(req, res).catch(next));
         app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
         app.post(`${this.routePrefix }/import-erc20`, (req, res, next) => this.importErc20(req, res).catch(next));
         app.put(`${this.routePrefix }/:id`, (req, res, next) => this.update(req, res).catch(next));
         app.put(`${this.routePrefix }/:id/image`, (req, res, next) => this.updateImage(req, res).catch(next));
     }
-    
+
+    async syncAllChains(req, res){
+        if(!req.isAdmin){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
+        res.sendStatus(HttpStatus.ACCEPTED);
+
+        try{
+            await this.coinManager.synchronizeCoins();
+        }catch(err){
+            logger.error('could sync chains', err);
+        }
+
+        const jobId = req.query.jobId;
+        if(jobId !== undefined && jobId != null){
+            logger.verbose(`calling done on job ${jobId}`);
+            await this.jobManager.setDone(req.userId, jobId);
+        }else{
+            logger.verbose('no jobId passed in query params');
+        }
+    }
+
     async importErc20Coin(req, res){
         if(!req.isAdmin){
             res.sendStatus(HttpStatus.UNAUTHORIZED);

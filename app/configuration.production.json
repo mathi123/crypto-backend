@@ -22,5 +22,6 @@
   "secret": "KJ2kjJK32LKJA\\'/.SD[]",
   "blockCypher": {
     "apiKey": "1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E"
-  }
+  },
+  "jobApi": "http://localhost:3001"
 }
