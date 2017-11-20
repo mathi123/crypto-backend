@@ -101,6 +101,7 @@ class CoinManager{
     }
 
     getChainObserver(coin){
+        logger.verbose(`getting chain observer for ${coin.description}`);
         if(coin.code === 'BTC' || coin.code === 'LTC' || coin.code === 'DOGE'){
             return new BlockCypherChainObserver();
         }else if(coin.code === 'ETH'){

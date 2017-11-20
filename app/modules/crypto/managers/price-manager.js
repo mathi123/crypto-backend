@@ -1,3 +1,4 @@
+const logger = require('../../../framework/logger');
 const theInternet = require('request-promise-native');
 const models = require('../models');
 const uuid = require('uuid/v4');
@@ -93,7 +94,7 @@ class PriceManager{
                 data = await theInternet(options);
             }catch(Error){
                 tries++;
-                console.log("retry "+tries);
+                logger.warn(`retry ${tries} for url ${url}`);
                 await timeout(100);
             }
         }

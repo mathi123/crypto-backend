@@ -25,7 +25,8 @@ class AccountManager{
     }
 
     async getBalance(coinId, address){
-        const coin = await models.findOne({
+        logger.verbose(`getting balance on coin ${coinId} for address ${address}`);
+        const coin = await models.Coin.findOne({
             where: {
                 id: coinId,
             },

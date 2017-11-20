@@ -29,6 +29,7 @@ class EthereumChainObserver {
 
     // Todo: use Web3js
     async getBalance(coin, address){
+        logger.verbose(`getting balance for ${address}`);
         const url = `https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest&apikey=${this.apiKey}`;
 
         const options = {

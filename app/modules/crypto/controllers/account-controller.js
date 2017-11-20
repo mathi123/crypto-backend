@@ -1,8 +1,10 @@
+
 const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const AccountManager = require('../managers/account-manager');
 const TransactionManager = require('../managers/transaction-manager');
+const logger = require('../../../framework/logger');
 
 class AccountController{
     constructor(configuration){
@@ -116,6 +118,8 @@ class AccountController{
             result.isValid = true;
             result.balance = balance;
         }catch(err){
+            logger.warn(`invalid address: ${req.query.address}`);
+            logger.error(err);
             result.isValid = false;
             result.balance = NaN;
         }
