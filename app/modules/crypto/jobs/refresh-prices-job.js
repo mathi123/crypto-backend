@@ -2,7 +2,7 @@ const models = require('../models');
 const uuid = require('uuid/v4');
 const PriceManager = require('../managers/price-manager');
 const JobProgressManager = require('../managers/job-progress-manager');
-const Logger = require('../managers/logger');
+const logger = require('../../../framework/logger');
 
 class RefreshPricesJob{
     constructor(configuration){
@@ -10,7 +10,6 @@ class RefreshPricesJob{
         this.priceCheckInSeconds = configuration.priceCheckInSeconds;
         this.priceManager = new PriceManager();
         this.jobProgressManager = new JobProgressManager();
-        this.logger = new Logger();
     }
 
     enqueue(jobManager){
@@ -19,55 +18,53 @@ class RefreshPricesJob{
 
     requeue(){
         this.jobManager.publish(this.jobName, {}, { startIn: this.priceCheckInSeconds })
-            .then((id) => this.logger.verbose('RefreshPricesJob job published', id))
-            .error((err) => this.logger.error('Could not publish RefreshPricesJob', err));
+            .then((id) => logger.verbose('RefreshPricesJob job published', id))
+            .error((err) => logger.error('Could not publish RefreshPricesJob', err));
     }
 
     requeueAccountSummary(unixTs){
         this.jobManager.publish('RefreshAccountSummaryJob', { timestamp: unixTs })
-            .then((id) => this.logger.verbose('RefreshAccountSummaryJob job published:', id))
-            .error((err) => this.logger.error('Could not publish RefreshAccountSummaryJob job', err));
+            .then((id) => logger.verbose('RefreshAccountSummaryJob job published:', id))
+            .error((err) => logger.error('Could not publish RefreshAccountSummaryJob job', err));
     }
 
     subscribe(jobManager){
         this.jobManager = jobManager;
 
         jobManager.subscribe(this.jobName, (data) => this.refreshPrices(data))
-            .then(() => this.logger.verbose('Subscribed to RefreshPricesJob'))
-            .error((err) => this.logger.error('Could not subscribe to RefreshPricesJob', err));
+            .then(() => logger.verbose('Subscribed to RefreshPricesJob'))
+            .error((err) => logger.error('Could not subscribe to RefreshPricesJob', err));
     }
 
-    async refreshPrices(data){
-        this.jobManager.unsubscribe(this.jobName);
+    refreshPrices(data){
+        return this.refreshPricesAsync(data)
+            .then(() => logger.info('refresh prices done'),
+                        (err) => logger.error('refresh prices error', err));
+    }
+
+    async refreshPricesAsync(data){
+        logger.info(`executing ${this.jobName}`);
 
         const date = new Date();
         date.setSeconds(0, 0);
-        const arg = date.getTime();
-
-        await this.jobProgressManager.start(data.id, this.jobName, JSON.stringify(arg));
+        const unixTs = date.getTime();
 
         try{
-            await this.refreshPricesAsync(arg);
-            await this.jobProgressManager.setDone(data.id);
+            const currencies = await models.Currency.findAll();
+            const coins = await models.Coin.findAll({
+                where: {
+                    isActive: true,
+                },
+            });
+
+            await this.priceManager.getPricesForCurrencies([unixTs], coins, currencies);
         }
         catch(err){
-            await this.jobProgressManager.logError(data.id, 'Job failed', err);
-            await this.jobProgressManager.setFailed(data.id);
+            logger.error('Job failed', err);
         }
-    }
 
-    async refreshPricesAsync(unixTs){
-        const currencies = await models.Currency.findAll();
-        const coins = await models.Coin.findAll({
-            where: {
-                isActive: true,
-            },
-        });
-
-        const prices = await this.priceManager.getPricesForCurrencies([unixTs], coins, currencies);
-
+        logger.info(`done executing ${this.jobName}`);
         this.requeue();
-        this.requeueAccountSummary(unixTs);
     }
 }
 

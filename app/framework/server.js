@@ -26,8 +26,10 @@ class Server {
 
         this.server = this.app.listen(this.port, () => logger.info('listening on port ' + this.port));
 
-        logger.info('attaching IO socket to server');
-        this.io.attach(this.server);
+        if(this.configuration.runIoOnStartUp){
+            logger.info('attaching IO socket to server');
+            this.io.attach(this.server);
+        }
 
         logger.info('server started');
     }
@@ -37,7 +39,9 @@ class Server {
         this.initializeExpress();
         this.initializeMiddleWares();
         this.logRequests();
-        this.initializeSockeIo();
+        if(this.configuration.runIoOnStartUp){
+            this.initializeSockeIo();
+        }
     }
 
     buildFallbackRoute() {

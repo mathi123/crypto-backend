@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node ./app/app.js --harmony-async-await",
     "watch": "./node_modules/nodemon/bin/nodemon.js ./app/app.js --harmony-async-await",
+    "watchjob": "./node_modules/nodemon/bin/nodemon.js ./app/app.js --harmony-async-await -c job-configuration.json",
     "test": "./node_modules/mocha/bin/mocha ./app/**/*.specs.js ./app/*.specs.js",
     "coverage": "./node_modules/nyc/bin/nyc.js --reporter=lcov npm test",
     "watch-test": "./node_modules/nodemon/bin/nodemon.js ./node_modules/mocha/bin/mocha ./app/**/*.specs.js ./app/*.specs.js",
@@ -21,8 +22,8 @@
     "express-validator": "^3.2.0",
     "http-status-codes": "^1.1.6",
     "jsonwebtoken": "^7.3.0",
+    "kue": "^0.11.6",
     "pg": "^6.1.5",
-    "pg-boss": "^2.3.1",
     "pg-hstore": "^2.3.2",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4",

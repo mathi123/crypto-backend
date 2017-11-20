@@ -21,14 +21,19 @@ class Bootstrapper {
         this.loadModules();
         this.createServer();
         this.buildRoutes();
-        this.startJobRunner();
+        await this.startJobRunner();
 
         return this.server;
     }
 
     loadConfigurationFile(configurationOverrides) {
+        let configFile = 'configuration.json';
+        const configFileFlag = process.argv.indexOf('-c');
+        if(configFileFlag >= 0){
+            configFile = process.argv[configFileFlag + 1];
+        }
         const configurationLoader = new ConfigurationLoader();
-        const configFilePath = path.join(__dirname, '../configuration.json');
+        const configFilePath = path.join(__dirname, `../${configFile}`);
         logger.info('Loading config file', configFilePath);
 
         this.configuration = configurationLoader.load(configFilePath, configurationOverrides);
@@ -70,11 +75,10 @@ class Bootstrapper {
         routeInitializer.bootstrap(app);
     }
 
-    startJobRunner() {
+    async startJobRunner() {
         if (this.configuration.runJobrunnerOnStartup) {
-            const jobRunner = new JobRunner();
-            jobRunner.initialize(this.configuration);
-            jobRunner.start();
+            const jobRunner = new JobRunner(this.configuration);
+            await jobRunner.start();
             JobRunner.Current = jobRunner;
         }
     }

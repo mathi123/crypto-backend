@@ -3,10 +3,12 @@ const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const bcrypt = require('bcrypt');
+const UserManager = require('../managers/user-manager');
 
 class UserController {
     constructor(configuration) {
         this.routePrefix = configuration.routePrefix;
+        this.userManager = new UserManager();
     }
 
     buildRoutes(app) {
@@ -67,11 +69,7 @@ class UserController {
             return;
         }
 
-        const user = await models.User.findOne({
-            where: {
-                id: id
-            }
-        });
+        const user = await this.userManager.getById(id);
 
         if (user === null) {
             res.sendStatus(HttpStatus.NOT_FOUND);
@@ -112,21 +110,16 @@ class UserController {
     }
 
     async createUser(req, res) {
-        console.info("creating a user.");
         const userData = req.body;
 
-        const user = {
-            id: uuid(),
-            name: userData.name,
-            email: userData.email,
-            password: await bcrypt.hash(userData.password, 10),
-            currencyId: userData.currencyId,
-        };
-
-        await models.User.create(user);
-
-        //res.location(`/${this.routePrefix}/user/${ user.id }`);
-        res.sendStatus(HttpStatus.CREATED);
+        try{
+            const user = await this.userManager.createUser(userData);
+            res.location(`/${this.routePrefix}/user/${ user.id }`);
+            res.sendStatus(HttpStatus.CREATED);
+        }catch(err){
+            logger.error('could not create user', err);
+            res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     async deleteUser(req, res) {

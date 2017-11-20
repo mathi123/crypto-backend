@@ -20,9 +20,9 @@ class RefreshAccountSummaryJob{
     subscribe(jobManager){
         this.jobManager = jobManager;
 
-        jobManager.subscribe(this.jobName, (data) => this.refreshAccountSummary(data))
+        /*jobManager.subscribe(this.jobName, (data) => this.refreshAccountSummary(data))
             .then(() => this.logger.verbose('Subscribed to job', this.jobName))
-            .error((err) => this.logger.error('Could not subscribe to ' + this.jobName + ' job', err));
+            .error((err) => this.logger.error('Could not subscribe to ' + this.jobName + ' job', err));*/
     }
 
     async refreshAccountSummary(data){

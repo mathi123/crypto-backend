@@ -2,7 +2,8 @@
   "port": 3000,
   "routePrefix": "api",
   "runMigrationsOnStartUp": true,
-  "runJobrunnerOnStartup": true,
+  "runJobrunnerOnStartup": false,
+  "runIoOnStartUp": true,
   "orm": {
     "username": "proxyuser",
     "password": "w47izFwg2KOIJEJh",

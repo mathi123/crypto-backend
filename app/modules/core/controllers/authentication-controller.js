@@ -2,12 +2,13 @@ const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const AuthenticationManager = require('../managers/authentication-manager');
 class AuthenticationController {
     constructor(configuration) {
         this.secret = configuration.secret;
         this.routePrefix = configuration.routePrefix;
         this.tokenRoute = `/${this.routePrefix}/token`;
+        this.authenticationManager = new AuthenticationManager(configuration);
     }
 
     buildRoutes(app) {
@@ -32,10 +33,10 @@ class AuthenticationController {
                 res.sendStatus(HttpStatus.UNAUTHORIZED);
             } else {
                 const token = tokenHeader.substr(tokenHeader.indexOf(' ') + 1);
-                const valid = await this.verifyToken(token);
+                const valid = await this.authenticationManager.verifyToken(token);
 
                 if (valid) {
-                    const payload = this.getTokenPayload(token);
+                    const payload = this.authenticationManager.getTokenPayload(token);
 
                     req.userId = payload.sub;
                     req.isAdmin = payload.adm;
@@ -68,37 +69,12 @@ class AuthenticationController {
             if (!isValid) {
                 res.sendStatus(HttpStatus.UNAUTHORIZED);
             } else {
-                const bearerHeader = await this.getBearerHeader(user);
+                const bearerHeader = await this.authenticationManager.getBearerHeader(user);
 
                 res.header('Authorization', bearerHeader);
                 res.sendStatus(HttpStatus.NO_CONTENT);
             }
         }
-    }
-
-    async getBearerHeader(user) {
-        const payload = this.buildTokenPayload(user);
-        const token = await jwt.sign(payload, this.secret);
-        return this.buildBearerHeaderContent(token);
-    }
-
-    buildTokenPayload(user) {
-        return {
-            sub: user.id,
-            adm: user.isAdmin,
-        };
-    }
-
-    buildBearerHeaderContent(token) {
-        return `Bearer ${token}`;
-    }
-
-    verifyToken(token) {
-        return jwt.verify(token, this.secret);
-    }
-
-    getTokenPayload(token) {
-        return jwt.decode(token, this.secret);
     }
 
     trimRoute(route) {

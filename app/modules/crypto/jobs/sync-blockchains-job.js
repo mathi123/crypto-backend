@@ -14,7 +14,7 @@ class SyncBlockChainsJob{
     requeue(){
         logger.verbose('requeue chain sync job');
 
-        this.jobManager.publish(this.jobName, {}, { startIn: 15 })
+        this.jobManager.publish(this.jobName, {}, { startIn: 30 })
             .then((id) => logger.verbose(`${this.jobName} job published`, id))
             .error((err) => logger.error(`Could not publish ${this.jobName}`, err));
     }
@@ -22,24 +22,30 @@ class SyncBlockChainsJob{
     subscribe(jobManager){
         this.jobManager = jobManager;
 
-        jobManager.subscribe(this.jobName, (data) => this.executeJob(data))
+        /*jobManager.subscribe(this.jobName, (data) => this.executeJob(data))
             .then(() => logger.verbose(`Subscribed to ${this.jobName}`))
-            .error((err) => logger.error(`Could not subscribe to ${this.jobName}`, err));
+            .error((err) => logger.error(`Could not subscribe to ${this.jobName}`, err));*/
     }
 
-    async executeJob(data){
-        logger.info('starting chain sync job');
-        this.jobManager.unsubscribe(this.jobName);
+    executeJob(data){
+        return this.executeJobAsync(data)
+            .then(() => logger.info(`${this.jobName} done`),
+                        (err) => logger.error(`error in ${this.jobName} job`, err));
+    }
+
+    async executeJobAsync(data){
+        logger.info('starting chain sync job', data.id);
+        //this.jobManager.unsubscribe(this.jobName);
 
         try{
             await this.coinManager.synchronizeCoins();
-        }
-        catch(err){
+        }catch(err){
             logger.error('error in chain sync job', err);
         }
 
-        this.subscribe(this.jobManager);
+        //this.subscribe(this.jobManager);
         this.requeue();
+        //this.subscribe(this.jobManager);
     }
 }
 
