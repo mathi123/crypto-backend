@@ -6,7 +6,7 @@ const Logger = require('../managers/logger');
 
 
 class RefreshAccountSummaryJob{
-    
+
     constructor(configuration){
         this.jobName = 'RefreshAccountSummaryJob';
         this.accountSummaryManager = new AccountSummaryManager(configuration);
@@ -21,8 +21,8 @@ class RefreshAccountSummaryJob{
         this.jobManager = jobManager;
 
         jobManager.subscribe(this.jobName, (data) => this.refreshAccountSummary(data))
-            .then(() => this.logger.verbose("Subscribed to job", this.jobName))
-            .error((err) => this.logger.error("Could not subscribe to " + this.jobName + " job", err));
+            .then(() => this.logger.verbose('Subscribed to job', this.jobName))
+            .error((err) => this.logger.error('Could not subscribe to ' + this.jobName + ' job', err));
     }
 
     async refreshAccountSummary(data){
@@ -30,12 +30,12 @@ class RefreshAccountSummaryJob{
         await this.jobProgressManager.start(data.id, this.jobName, data.data);
 
         try{
-            let timestamp = data.data.timestamp;
+            const timestamp = data.data.timestamp;
             await this.accountSummaryManager.refreshAllAccounts(timestamp);
             await this.jobProgressManager.setDone(data.id);
         }
         catch(err){
-            await this.jobProgressManager.logError(data.id, "Job failed", err);
+            await this.jobProgressManager.logError(data.id, 'Job failed', err);
             await this.jobProgressManager.setFailed(data.id);
         }
     }

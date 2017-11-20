@@ -30,7 +30,7 @@ class SyncBlockChainsJob{
     async executeJob(data){
         logger.info('starting chain sync job');
         this.jobManager.unsubscribe(this.jobName);
-        
+
         try{
             await this.coinManager.synchronizeCoins();
         }
@@ -38,6 +38,7 @@ class SyncBlockChainsJob{
             logger.error('error in chain sync job', err);
         }
 
+        this.subscribe(this.jobManager);
         this.requeue();
     }
 }
