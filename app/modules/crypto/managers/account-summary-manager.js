@@ -2,7 +2,6 @@ const logger = require('../../../framework/logger');
 const models = require('../models');
 const uuid = require('uuid/v4');
 const coreModels = require('../../core/models');
-const SocketManager = require('../../../framework/socket-manager');
 const CoinManager = require('./coin-manager');
 
 class AccountSummaryManager{
@@ -56,9 +55,6 @@ class AccountSummaryManager{
         const chain = this.chainManager.getChainObserver(coin);
         const balance = await chain.getBalance(coin, account.address);
         await this.createAccountSummary(account, timestamp, balance, price);
-
-        logger.info('io should publish event now.');
-        SocketManager.Current.emitForUserId(account.userId, 'reloadTotal', { accountId: account.id });
     }
 
     async createAccountSummary(account, timestamp, balance, price){

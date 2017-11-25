@@ -2,7 +2,6 @@ const logger = require('../../../framework/logger');
 const models = require('../models');
 const uuid = require('uuid/v4');
 const CoinManager = require('./coin-manager');
-const SocketManager = require('../../../framework/socket-manager');
 
 class TransactionManager{
     constructor(configuration){
@@ -55,9 +54,6 @@ class TransactionManager{
         }) || [];
 
         await this.merge(accountId, existingTransactions, transactions);
-
-        logger.verbose('io should publish event now.');
-        SocketManager.Current.emitForUserId(account.userId, 'reloadTransactions', { accountId });
     }
 
     async merge(accountId, existingTransactions, transactions){

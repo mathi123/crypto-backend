@@ -1,6 +1,7 @@
 const logger = require('../../../framework/logger');
 const Web3 = require('web3');
 const theInternet = require('request-promise-native');
+const sleep = require('sleep-promise');
 
 class EthereumChainObserver {
 
@@ -38,10 +39,17 @@ class EthereumChainObserver {
         };
 
         let data = null;
+        let tries = 0;
         try{
-            data = await theInternet(options);
+            while((data === null || data.status != this.okStatus) && tries++ < 5){
+                if(tries > 1){
+                    await sleep(50);
+                }
+
+                data = await theInternet(options);
+            }
         }catch(Error){
-            logger.warn(`Could not perform webrequest to ${url}`);
+            logger.warn(`Could not perform webrequest to ${url} (${tries} tries)`);
         }
 
         if(data === null || data === undefined || data.status != this.okStatus || data.result === null || data.result === undefined){

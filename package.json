@@ -30,7 +30,6 @@
     "request-promise-native": "^1.0.4",
     "sequelize": "^3.30.4",
     "sleep-promise": "^2.0.0",
-    "socket.io": "^2.0.3",
     "umzug": "^2.0.1",
     "uuid": "^3.0.1",
     "web3": "^1.0.0-beta.24",

@@ -53,7 +53,7 @@ class JobManager{
 
     createRefreshPricesJob(){
         JobManager.queue.create('refreshPrices', {})
-            .delay(15000)
+            .delay(60000)
             .attempts(5)
             .save();
     }

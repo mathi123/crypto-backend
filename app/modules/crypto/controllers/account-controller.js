@@ -84,10 +84,18 @@ class AccountController{
             transactionType: data.transactionType,
         };
 
+        if(record.transactionType === 'auto'){
+            record.state = 'importing';
+        }else{
+            record.state = 'new';
+        }
+
         await models.Account.create(record);
 
         // load transactions but don't wait for the result
-        this.transactionManager.loadTransactions(record.id);
+        if(record.transactionType === 'auto'){
+            this.transactionManager.loadTransactions(record.id);
+        }
 
         res.location(`${this.routePrefix}/${ record.id }`);
         res.sendStatus(HttpStatus.CREATED);
@@ -136,6 +144,7 @@ class AccountController{
             address: record.address,
             note: record.note,
             transactionType: record.transactionType,
+            state: record.state,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
             _links : {

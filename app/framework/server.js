@@ -4,8 +4,6 @@ const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const HttpStatus = require('http-status-codes');
 const cors = require('cors');
-const socketIo = require('socket.io');
-const SocketManager = require('./socket-manager');
 
 class Server {
     constructor(configuration) {
@@ -39,9 +37,6 @@ class Server {
         this.initializeExpress();
         this.initializeMiddleWares();
         this.logRequests();
-        if(this.configuration.runIoOnStartUp){
-            this.initializeSockeIo();
-        }
     }
 
     buildFallbackRoute() {
@@ -55,24 +50,6 @@ class Server {
 
     initializeExpress() {
         this.app = initializeExpressApplication();
-    }
-
-    initializeSockeIo() {
-        logger.info('initializing socket.io at /socker route');
-        const socketManager = new SocketManager(this.configuration);
-
-        this.io = socketIo.listen({
-            path: '/socket',
-            serveClient: false,
-            // below are engine.IO options
-            //pingInterval: 10000,
-            //pingTimeout: 5000,
-            //cookie: false
-        });
-
-        socketManager.initialize(this.io);
-
-        SocketManager.Current = socketManager;
     }
 
     initializeMiddleWares() {
