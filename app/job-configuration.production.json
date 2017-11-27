@@ -27,5 +27,5 @@
     "port": 6379
   },
   "jobManagerEmail": "jobmanager",
-  "restApi": "http://localhost:3000"
+  "restApi": "http://10.55.244.241:3000"
 }
