@@ -23,7 +23,7 @@
     "apiKey": "1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E"
   },
   "redis": {
-    "host": "127.0.0.1",
+    "host": "0.0.0.0",
     "port": 6379
   },
   "jobManagerEmail": "jobmanager",
