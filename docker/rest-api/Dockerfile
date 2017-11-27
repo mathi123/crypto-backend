@@ -2,9 +2,9 @@ FROM node:7.7.3
 
 RUN mkdir /usr/app
 
-COPY . /usr/app
+COPY ../../ /usr/app
 
-COPY ./app/configuration.production.json /usr/app/app/configuration.json
+COPY ../../app/configuration.production.json /usr/app/app/configuration.json
 
 WORKDIR /usr/app
 
