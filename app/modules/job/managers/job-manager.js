@@ -73,7 +73,7 @@ class JobManager{
         };
 
 
-        const url = `${this.configuration.restApi}/api/price?jobId=${job.id}`;
+        const url = `${this.getRestApiUrl()}/api/price?jobId=${job.id}`;
         const options = {
             uri: url,
             json: true,
@@ -98,7 +98,7 @@ class JobManager{
             requeue: () => this.createChainSyncJob(),
         };
 
-        const url = `${this.configuration.restApi}/api/coin/blockchain/synchronize?jobId=${job.id}`;
+        const url = `${this.getRestApiUrl()}/api/coin/blockchain/synchronize?jobId=${job.id}`;
         const options = {
             uri: url,
             json: true,
@@ -114,6 +114,10 @@ class JobManager{
             logger.warn(`Could not perform webrequest to ${url}`, err);
             job.state('failed').save();
         }
+    }
+
+    getRestApiUrl(){
+        return process.env.REST_API || this.configuration.restApi;
     }
 
     setDone(jobId){

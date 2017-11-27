@@ -11,7 +11,7 @@ class JobApi{
     }
 
     async setDone(userId, jobId){
-        const url = `${this.configuration.jobApi}/api/job/${jobId}`;
+        const url = `${this.getJobApiUrl()}/api/job/${jobId}`;
         logger.verbose(url);
 
         const options = {
@@ -29,6 +29,10 @@ class JobApi{
             logger.warn(`Could not perform DELETE ${url}`, err);
             throw err;
         }
+    }
+
+    getJobApiUrl(){
+        return process.env.JOB_MANAGER || this.configuration.jobApi;
     }
 
     async getToken(userId){

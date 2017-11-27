@@ -26,6 +26,5 @@
     "host": "0.0.0.0",
     "port": 6379
   },
-  "jobManagerEmail": "jobmanager",
-  "restApi": "http://10.55.244.241:3000"
+  "jobManagerEmail": "jobmanager"
 }
