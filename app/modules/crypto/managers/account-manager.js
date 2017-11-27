@@ -35,6 +35,15 @@ class AccountManager{
         const observer = await this.chainManager.getChainObserver(coin);
         return await observer.getBalance(coin, address);
     }
+
+    async setState(accountId, state){
+        await models.Account.update({ state }, {
+            where: {
+                id: accountId,
+            },
+            fields: ['state'],
+        });
+    }
 }
 
 module.exports = AccountManager;

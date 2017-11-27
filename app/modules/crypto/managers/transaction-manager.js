@@ -2,10 +2,12 @@ const logger = require('../../../framework/logger');
 const models = require('../models');
 const uuid = require('uuid/v4');
 const CoinManager = require('./coin-manager');
+const AccountManager = require('./account-manager');
 
 class TransactionManager{
     constructor(configuration){
         this.coinManager = new CoinManager(configuration);
+        this.accountManager = new AccountManager(configuration);
     }
 
     async getAll(accountId){
@@ -54,6 +56,8 @@ class TransactionManager{
         }) || [];
 
         await this.merge(accountId, existingTransactions, transactions);
+
+        await this.accountManager.setState(accountId, 'done');
     }
 
     async merge(accountId, existingTransactions, transactions){
@@ -62,14 +66,12 @@ class TransactionManager{
 
             if(existing === null || existing === undefined){
                 await this.insertTransaction(accountId, transaction);
-            }else{
-                this.updateTransaction(existing, transaction);
             }
         }
     }
 
     async insertTransaction(accountId, data){
-        logger.verbose('inserting transaction');
+        logger.verbose(`inserting transaction ${data.id}`);
 
         const transaction = {
             accountId,
@@ -80,10 +82,6 @@ class TransactionManager{
         };
 
         await models.Transaction.create(transaction);
-    }
-
-    updateTransaction(existing, transaction){
-
     }
 }
 
