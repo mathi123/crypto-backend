@@ -1,0 +1,6 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', './job-manager.dockerfile', '-t', 'gcr.io/cryptofolio-183711/job-manager:$COMMIT_SHA', '.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', './rest-api.dockerfile', '-t', 'gcr.io/cryptofolio-183711/rest-api:$COMMIT_SHA', '.']
+images: ['gcr.io/cryptofolio-183711/job-manager:$COMMIT_SHA', 'gcr.io/cryptofolio-183711/rest-api:$COMMIT_SHA']
