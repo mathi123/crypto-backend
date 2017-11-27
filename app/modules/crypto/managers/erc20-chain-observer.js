@@ -10,7 +10,7 @@ class Erc20ChainObserver {
 
     async getLastBlock(coin){
         logger.verbose(`Getting latest block for ${coin.description}.`);
-        const lastBlock = await models.Coin.finOne({
+        const lastBlock = await models.Coin.findOne({
             where: {
                 code: 'ETH',
             },
