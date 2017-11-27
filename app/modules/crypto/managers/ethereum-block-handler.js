@@ -29,22 +29,6 @@ class EthereumBlockHandler{
                 });
             }
         }
-
-        if(blocks.length > 0){
-            const lastBlock = blocks[blocks.length - 1].number;
-            await this.updateLastImportedBlock(coin, lastBlock);
-        }
-    }
-
-    async updateLastImportedBlock(coin, blockNumber) {
-        await models.Coin.update({
-            lastBlockSynchronized: blockNumber,
-        }, {
-            where: {
-                id: coin.id,
-            },
-            fields: ['lastBlockSynchronized'],
-        });
     }
 }
 

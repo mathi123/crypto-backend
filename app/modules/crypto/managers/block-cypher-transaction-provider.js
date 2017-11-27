@@ -1,5 +1,6 @@
 const logger = require('../../../framework/logger');
 const theInternet = require('request-promise-native');
+const sleep = require('sleep-promise');
 
 class BlockCypherTransactionProvider{
     async getTransactionsForBlocks(coin, from, to){
@@ -16,13 +17,17 @@ class BlockCypherTransactionProvider{
         };
 
         let data = null;
+        let tries = 0;
 
-        try{
-            data = await theInternet(options);
-        }catch(Error){
-            logger.warn(`Error loading url: ${url}`);
+        while(tries < this.MaxTries && (data === null || data === undefined || data.txs === null || data.txs === undefined)){
+            try{
+                data = await theInternet(options);
+            }catch(Error){
+                logger.warn(`Error loading url: ${url}`);
+                await sleep(50)*(tries + 1);
+            }
+            tries++;
         }
-
         if(data === null || data === undefined || data.txs === null || data.txs === undefined){
             throw new Error('Could not get transactions.');
         }

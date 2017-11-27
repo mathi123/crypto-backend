@@ -1,5 +1,4 @@
 const logger = require('../../../framework/logger');
-const models = require('../models');
 const Web3 = require('web3');
 
 class EthereumBlockProvider{

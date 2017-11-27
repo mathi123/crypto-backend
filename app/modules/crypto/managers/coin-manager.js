@@ -64,10 +64,13 @@ class CoinManager{
     }
 
     async importBlocks(coin, from, lastBlockOnChain, batchSize) {
+        logger.verbose(`synchronizing ${coin.description} from ${from} -> ${lastBlockOnChain}`);
         const blockHandlers = this.getBlockHandlers(coin);
         const transactionHandlers = this.getTransactionHandlers(coin);
         const importBlocks = blockHandlers.length > 0;
         const importTransactions = transactionHandlers.length > 0;
+        logger.verbose(`found ${blockHandlers.length} block handlers and ${transactionHandlers.length} transaction handlers.`);
+
         if (importBlocks || importTransactions)  {
             const blockProvider = importBlocks ? this.getBlockProvider(coin) : null;
             const transactionProvider = importTransactions ? this.getTransactionProvider(coin) : null;

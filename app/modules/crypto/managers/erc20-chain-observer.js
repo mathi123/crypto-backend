@@ -10,8 +10,13 @@ class Erc20ChainObserver {
 
     async getLastBlock(coin){
         logger.verbose(`Getting latest block for ${coin.description}.`);
-        const lastBlock = await models.EthereumBlock.max('id');
-        return lastBlock;
+        const lastBlock = await models.Coin.finOne({
+            where: {
+                code: 'ETH',
+            },
+        });
+
+        return lastBlock.lastBlockSynchronized;
     }
 
     async getBalance(coin, address){

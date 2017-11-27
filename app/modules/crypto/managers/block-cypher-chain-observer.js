@@ -1,7 +1,12 @@
 const logger = require('../../../framework/logger');
 const theInternet = require('request-promise-native');
+const sleep = require('sleep-promise');
 
 class BlockCypherChainObserver {
+    constructor(){
+        this.MaxTries = 5;
+    }
+
     async getLastBlock(coin){
         logger.verbose(`Getting latest block for ${coin.description}.`);
         const url = `https://api.blockcypher.com/v1/${coin.code.toLowerCase()}/main`;
@@ -11,11 +16,17 @@ class BlockCypherChainObserver {
         };
 
         let data = null;
+        let tries = 0;
 
-        try{
-            data = await theInternet(options);
-        }catch(Error){
-            logger.warn(`Could not perform webrequest to ${url}`);
+        while(tries < this.MaxTries && (data === null || data === undefined || data.height === null || data.height === undefined))
+        {
+            try{
+                data = await theInternet(options);
+            }catch(Error){
+                logger.warn(`Could not perform webrequest to ${url}`);
+                await sleep(50*(tries + 1));
+            }
+            tries++;
         }
 
         if(data === null || data === undefined || data.height === null || data.height === undefined){
@@ -34,10 +45,16 @@ class BlockCypherChainObserver {
         };
 
         let data = null;
-        try{
-            data = await theInternet(options);
-        }catch(Error){
-            logger.warn(`Could not perform webrequest to ${url}`);
+        let tries = 0;
+        while(tries < this.MaxTries && (data === null || data === undefined || data.height === null || data.height === undefined))
+        {
+            try{
+                data = await theInternet(options);
+            }catch(Error){
+                logger.warn(`Could not perform webrequest to ${url}`);
+                await sleep(50)*(tries + 1);
+            }
+            tries++;
         }
 
         if(data === null || data === undefined || data.balance === null || data.balance === undefined){
