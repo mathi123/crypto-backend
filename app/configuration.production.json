@@ -22,5 +22,5 @@
   "blockCypher": {
     "apiKey": "1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E"
   },
-  "jobApi": "http://localhost:3001"
+  "jobApi": "http://10.55.249.75:3001"
 }
