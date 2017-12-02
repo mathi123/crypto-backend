@@ -3,11 +3,13 @@ const models = require('../models');
 const uuid = require('uuid/v4');
 const CoinManager = require('./coin-manager');
 const AccountManager = require('./account-manager');
+const PriceManager = require('./price-manager');
 
 class TransactionManager{
     constructor(configuration){
         this.coinManager = new CoinManager(configuration);
         this.accountManager = new AccountManager(configuration);
+        this.priceManager = new PriceManager();
     }
 
     async getAll(accountId){
@@ -55,19 +57,32 @@ class TransactionManager{
             },
         }) || [];
 
-        await this.merge(accountId, existingTransactions, transactions);
+        const newTransactions = await this.merge(accountId, existingTransactions, transactions);
 
         await this.accountManager.setState(accountId, 'done');
+
+        await this.loadPrices(coin, account, newTransactions.map(txn => txn.ts));
+    }
+
+    async loadPrices(coin, account, timestamps){
+        logger.verbose(`loading prices for ${timestamps.length} timestamps`);
+        const currencies = await models.Currency.findAll();
+        for(const currency of currencies){
+            await this.priceManager.getPricesForDateArray(timestamps, coin, currency);
+        }
     }
 
     async merge(accountId, existingTransactions, transactions){
+        const newTransactions = [];
         for(const transaction of transactions){
             const existing = existingTransactions.filter(e => e.transactionId === transaction.id)[0];
 
             if(existing === null || existing === undefined){
-                await this.insertTransaction(accountId, transaction);
+                const transaction = await this.insertTransaction(accountId, transaction);
+                newTransactions.push(transaction);
             }
         }
+        return newTransactions;
     }
 
     async insertTransaction(accountId, data){
@@ -82,6 +97,7 @@ class TransactionManager{
         };
 
         await models.Transaction.create(transaction);
+        return transaction;
     }
 }
 

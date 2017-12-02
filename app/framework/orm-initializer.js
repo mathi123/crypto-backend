@@ -18,6 +18,7 @@ class OrmInitializer{
         const config = this.configuration;
 
         this.sequelize = new Sequelize(database, username, password, config);
+        Sequelize.Current = this.sequelize;
         logger.info('sequelize started');
     }
 

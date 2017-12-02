@@ -1,5 +1,3 @@
-
-const uuid = require('uuid/v4');
 const models = require('../models');
 const HttpStatus = require('http-status-codes');
 const AccountManager = require('../managers/account-manager');
@@ -42,63 +40,28 @@ class AccountController{
     async update(req, res) {
         const id = req.params.id;
         const data = req.body;
-        const record = await models.Account.findOne({
-            where: {
-                id,
-                userId: req.userId,
-            },
-        });
 
-        if(record === null){
-            res.sendStatus(HttpStatus.NOT_FOUND);
-        }else{
-            const values = {
-                description: data.description,
-                color: data.color,
-                address: data.address,
-                note: data.note,
-                transactionType: data.transactionType,
-            };
-
-            await models.Account.update(values, { where: { id }, fields: ['description', 'color', 'address', 'note', 'transactionType'] });
-
-            // reload transactions but don't wait for the result
-            this.transactionManager.loadTransactions(record.id);
-
+        try{
+            await this.manager.updateWithUserCheck(req.userId, id, data);
             res.location(`/${this.routePrefix}/${ id }`);
             res.sendStatus(HttpStatus.NO_CONTENT);
+        }catch(error){
+            logger.error('could not update account');
+            res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     async create(req, res) {
         const data = req.body;
 
-        const record = {
-            id: uuid(),
-            userId: req.userId,
-            coinId: data.coinId,
-            description: data.description,
-            color: data.color,
-            address: data.address,
-            note: data.note,
-            transactionType: data.transactionType,
-        };
-
-        if(record.transactionType === 'auto'){
-            record.state = 'importing';
-        }else{
-            record.state = 'new';
+        try{
+            const record = await this.manager.create(req.userId, data);
+            res.location(`${this.routePrefix}/${ record.id }`);
+            res.sendStatus(HttpStatus.CREATED);
+        }catch(error){
+            logger.error('could not create account');
+            res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        await models.Account.create(record);
-
-        // load transactions but don't wait for the result
-        if(record.transactionType === 'auto'){
-            this.transactionManager.loadTransactions(record.id);
-        }
-
-        res.location(`${this.routePrefix}/${ record.id }`);
-        res.sendStatus(HttpStatus.CREATED);
     }
 
     async remove(req, res) {
