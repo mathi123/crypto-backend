@@ -11,15 +11,15 @@ class EthereumBlockHandler{
                 ts: block.timestamp,
             };
 
-            const existing = models.EthereumBlock.findOne({
+            const existing = await models.EthereumBlock.findOne({
                 where:{
                     id: dbBlock.id,
                 },
             });
             if(existing === null){
-                models.EthereumBlock.create(dbBlock);
+                await models.EthereumBlock.create(dbBlock);
             }else{
-                models.EthereumBlock.update({
+                await models.EthereumBlock.update({
                     ts: dbBlock.ts,
                 }, {
                     fields: ['ts']
