@@ -17,19 +17,38 @@ class EthereumBlockHandler{
                 },
             });
             if(existing === null){
-                logger.verbose(`inserting new ethereum block ${dbBlock.id}, ts = ${dbBlock.ts}`);
-                await models.EthereumBlock.create(dbBlock);
+                await this.insertBlock(dbBlock);
             }else{
-                logger.verbose(`ethereum block already in system: ${dbBlock.id}, ts = ${dbBlock.ts}`);
-                await models.EthereumBlock.update({
-                    ts: dbBlock.ts,
-                }, {
-                    fields: ['ts']
-                    , where: {
-                        id: dbBlock.id,
-                    },
-                });
+                await this.updateBlock(dbBlock);
             }
+        }
+    }
+
+    async updateBlock(dbBlock) {
+        const data = {
+            ts: dbBlock.ts,
+        };
+        const options = {
+            fields: ['ts'],
+            where: {
+                id: dbBlock.id,
+            },
+        };
+
+        try{
+            await models.EthereumBlock.update(data, options);
+        }catch(err){
+            throw err;
+        }
+    }
+
+    async insertBlock(dbBlock) {
+        try{
+            logger.verbose(`ethereum block already in system: ${dbBlock.id}, ts = ${dbBlock.ts}`);
+            await models.EthereumBlock.create(dbBlock);
+        }catch(err){
+            logger.verbose(`could not insert new ethereum block ${dbBlock.id}, ts = ${dbBlock.ts}`);
+            throw err;
         }
     }
 }
