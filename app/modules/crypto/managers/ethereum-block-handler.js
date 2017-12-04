@@ -36,6 +36,7 @@ class EthereumBlockHandler{
         };
 
         try{
+            logger.verbose(`ethereum block already in system: ${dbBlock.id}, ts = ${dbBlock.ts}`);
             await models.EthereumBlock.update(data, options);
         }catch(err){
             throw err;
@@ -44,7 +45,6 @@ class EthereumBlockHandler{
 
     async insertBlock(dbBlock) {
         try{
-            logger.verbose(`ethereum block already in system: ${dbBlock.id}, ts = ${dbBlock.ts}`);
             await models.EthereumBlock.create(dbBlock);
         }catch(err){
             logger.verbose(`could not insert new ethereum block ${dbBlock.id}, ts = ${dbBlock.ts}`);
