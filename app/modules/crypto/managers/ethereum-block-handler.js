@@ -17,8 +17,10 @@ class EthereumBlockHandler{
                 },
             });
             if(existing === null){
+                logger.verbose(`inserting new ethereum block ${dbBlock.id}, ts = ${dbBlock.ts}`);
                 await models.EthereumBlock.create(dbBlock);
             }else{
+                logger.verbose(`ethereum block already in system: ${dbBlock.id}, ts = ${dbBlock.ts}`);
                 await models.EthereumBlock.update({
                     ts: dbBlock.ts,
                 }, {
