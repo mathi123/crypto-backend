@@ -81,7 +81,7 @@ class CoinManager{
 
                     if(blocks.length > 0){
                         for (const handler of blockHandlers) {
-                            handler.handleBlocks(coin, blocks);
+                            await handler.handleBlocks(coin, blocks);
                         }
                     }
                 }
@@ -91,7 +91,7 @@ class CoinManager{
 
                     if(transactions.length > 0){
                         for (const handler of transactionHandlers) {
-                            handler.handleTransactions(coin, transactions);
+                            await handler.handleTransactions(coin, transactions);
                         }
                     }
                 }
