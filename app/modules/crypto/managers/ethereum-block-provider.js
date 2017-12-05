@@ -11,7 +11,7 @@ class EthereumBlockProvider{
 
         const result = [];
         const web3 = this.getWeb3();
-        for(let i = from; i<to;i++){
+        for(let i = from; i <= to; i++){
             const block = await web3.eth.getBlock(i);
             result.push(block);
         }

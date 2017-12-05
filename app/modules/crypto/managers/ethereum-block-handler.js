@@ -9,6 +9,18 @@ class EthereumBlockHandler{
             const dbBlock = {
                 id: block.number,
                 ts: block.timestamp,
+                difficulty: block.difficulty,
+                gasLimit: block.gasLimit,
+                gasUsed: block.gasUsed,
+                hash: block.hash,
+                miner: block.miner,
+                mixHash: block.mixHash,
+                nonce: block.nonce,
+                parentHash: block.parentHash,
+                receiptsRoot: block.receiptsRoot,
+                sha3Uncles: block.sha3Uncles,
+                size: block.size,
+                stateRoot: block.stateRoot,
             };
 
             const existing = await models.EthereumBlock.findOne({
