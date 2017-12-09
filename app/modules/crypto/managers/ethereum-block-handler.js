@@ -23,6 +23,8 @@ class EthereumBlockHandler{
                 stateRoot: block.stateRoot,
             };
 
+            await this.assertPreviousBlock(block.number);
+
             const existing = await models.EthereumBlock.findOne({
                 where:{
                     id: dbBlock.id,
@@ -33,6 +35,21 @@ class EthereumBlockHandler{
             }else{
                 await this.updateBlock(dbBlock);
             }
+        }
+    }
+
+    async assertPreviousBlock(id){
+        if(id === 0) return;
+
+        const previousBlockId = id-1;
+        const existing = await models.EthereumBlock.findOne({
+            where:{
+                id: previousBlockId,
+            },
+        });
+        if(existing === null){
+            logger.error(`Could not insert ethereum block, because the previous block (${previousBlockId}) was not found.`);
+            throw new Error('ethereum previous block not found');
         }
     }
 

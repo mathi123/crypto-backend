@@ -73,7 +73,7 @@ class CoinManager{
             const blockProvider = importBlocks ? this.getBlockProvider(coin) : null;
             const transactionProvider = importTransactions ? this.getTransactionProvider(coin) : null;
 
-            for (let i = from; i < lastBlockOnChain; i = i + batchSize) {
+            for (let i = from; i <= lastBlockOnChain; i = i + batchSize) {
                 const to = Math.min(lastBlockOnChain, i + batchSize - 1);
 
                 if(importBlocks){
