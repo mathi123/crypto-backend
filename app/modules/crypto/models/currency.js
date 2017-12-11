@@ -2,7 +2,7 @@
 const uuid = require('uuid/v4');
 
 module.exports = function (seq, Sequelize) {
-    const Tag = seq.define('Currency', {
+    const Currency = seq.define('Currency', {
         id: {
             type: Sequelize.UUID,
             primaryKey: true,
@@ -31,11 +31,24 @@ module.exports = function (seq, Sequelize) {
         tableName: 'Currency',
     });
 
-    Tag.addHook('beforeCreate', record => {
+
+    Currency.associate = function(models){
+        const User = models['core']['User'];
+
+        Currency.hasMany(User, {
+            foreignKey: 'currencyId',
+        });
+
+        User.belongsTo(Currency, {
+            foreignKey: 'currencyId',
+        });
+    };
+
+    Currency.addHook('beforeCreate', record => {
         if (record.id === null) {
             record.id = uuid();
         }
     });
 
-    return Tag;
+    return Currency;
 };

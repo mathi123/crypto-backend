@@ -14,33 +14,40 @@ class AccountManager{
         const now = new Date();
         const timestamp = now.getTime();
         const oneHour = Math.floor(new Date(timestamp - 3600 * 1000).getTime());
+        const oneDay = Math.floor(new Date(timestamp - 24 * 3600 * 1000).getTime());
         const lastWeek = Math.floor(new Date(timestamp - 7 * 24 * 3600 * 1000).getTime());
         const oneMonth = Math.floor(new Date(timestamp - 30 * 24 * 3600 * 1000).getTime());
-        const parameters = [timestamp, oneHour, lastWeek, oneMonth, userId];
+        const parameters = [timestamp, oneHour, lastWeek, oneMonth, userId, oneDay];
 
         logger.verbose(JSON.stringify(parameters));
 
         const records = await sequelize.Current.query(`
         SELECT
         "Account".*,
-        COALESCE(qryNow.amount, 0)      AS balance,
-        COALESCE(oneHour.amount, 0)     AS balanceOneHourAgo,
-        COALESCE(oneWeekAgo.amount, 0)  AS balanceOneWeekAgo,
-        COALESCE(oneMonthAgo.amount, 0) AS balanceOneMonthAgo,
-        COALESCE(priceNow.price, 0) AS priceNow,
-        priceNow.ts as priceNowTs,
-        COALESCE(priceOneHour.price, 0) AS priceOneHour,
-        priceOneHour.ts as priceOneHourTs,
-        COALESCE(priceLastWeek.price, 0) AS priceLastWeek,
-        priceLastWeek.ts as priceLastWeekTs,
-        COALESCE(priceLastMonth.price, 0) AS priceLastMonth,
-        priceLastMonth.ts as priceLastMonthTs,
-        coin."code" AS coinCode,
-        coin."fileId" AS coinFileId,
-        coin."description" AS coinDescription
+        COALESCE(txnCount."txnCount", 0) AS "txnCount",
+        COALESCE(qryNow.amount, 0)      AS "balance",
+        COALESCE(oneHour.amount, 0)     AS "balanceOneHourAgo",
+        COALESCE(oneWeekAgo.amount, 0)  AS "balanceOneWeekAgo",
+        COALESCE(oneDayAgo.amount, 0)  AS "balanceOneDayAgo",
+        COALESCE(oneMonthAgo.amount, 0) AS "balanceOneMonthAgo",
+        COALESCE(priceNow.price, 0) AS "priceNow",
+        priceNow.ts as "priceNowTs",
+        COALESCE(priceOneHour.price, 0) AS "priceOneHour",
+        priceOneHour.ts as "priceOneHourTs",
+        COALESCE(priceOneDay.price, 0) AS "priceOneDay",
+        priceOneDay.ts as "priceOneDayTs",
+        COALESCE(priceLastWeek.price, 0) AS "priceLastWeek",
+        priceLastWeek.ts as "priceLastWeekTs",
+        COALESCE(priceLastMonth.price, 0) AS "priceLastMonth",
+        priceLastMonth.ts as "priceLastMonthTs",
+        coin."code" AS "coinCode",
+        coin."fileId" AS "coinFileId",
+        coin."description" AS "coinDescription"
       FROM "Account"
         JOIN "Coin" coin 
           ON coin."id" = "Account"."coinId"
+        LEFT JOIN (SELECT COUNT(*) "txnCount", "accountId" FROM "Transaction" GROUP BY "accountId") txnCount 
+            ON txnCount."accountId" = "Account"."id"
         LEFT JOIN
         (
           SELECT
@@ -60,6 +67,16 @@ class AccountManager{
           GROUP BY "accountId"
         ) oneHour
           ON "Account".id = oneHour."accountId"
+        LEFT JOIN
+          (
+            SELECT
+              "accountId",
+              SUM("Transaction".amount) AS amount
+            FROM "Transaction"
+            WHERE ts <= $6
+            GROUP BY "accountId"
+          ) oneDayAgo
+            ON "Account".id = oneDayAgo."accountId"
         LEFT JOIN
         (
           SELECT
@@ -155,6 +172,44 @@ class AccountManager{
                                           WHERE "Users"."id" = $5)
           ) priceOneHour
             ON "Account"."coinId" = priceOneHour."coinId"
+            
+        LEFT JOIN
+            (
+            SELECT
+                "Price"."price",
+                "Price"."ts",
+                "Price"."coinId"
+            FROM "Price"
+                JOIN
+                (SELECT
+                    "a"."coinId",
+                    "a"."currencyId",
+                    MIN(ABS(ts - $6)) AS diff
+                FROM ((SELECT
+                        "Price"."coinId",
+                        "Price"."currencyId",
+                        max("Price"."ts") AS ts
+                        FROM "Price"
+                        WHERE ts <= $6
+                        GROUP BY "Price"."coinId", "Price"."currencyId")
+                        UNION ALL
+                        (SELECT
+                        "Price"."coinId",
+                        "Price"."currencyId",
+                        min("Price"."ts") AS ts
+                        FROM "Price"
+                        WHERE ts > $6
+                        GROUP BY "Price"."coinId", "Price"."currencyId")) a
+                GROUP BY "a"."coinId", "a"."currencyId"
+                ) ml
+                ON "Price"."currencyId" = ml."currencyId" AND "Price"."coinId" = ml."coinId"
+            WHERE
+                ABS("Price"."ts" - $6) = ml."diff"
+                AND "Price"."currencyId" = (SELECT "Users"."currencyId"
+                                            FROM "Users"
+                                            WHERE "Users"."id" = $5)
+            ) priceOneDay
+            ON "Account"."coinId" = priceOneDay."coinId"
             
         LEFT JOIN
             (

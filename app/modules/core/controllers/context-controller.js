@@ -1,4 +1,5 @@
 const models = require('../models');
+const cryptoModels = require('../../crypto/models');
 
 class ContextController{
     constructor(configuration){
@@ -14,18 +15,27 @@ class ContextController{
 
         const user = await models.User.findOne({
             where: {
-                id: userId
-            }
+                id: userId,
+            },
+            include: [
+                {
+                    model: cryptoModels.Currency,
+                },
+            ],
         });
-
+console.log(JSON.stringify(user));
         res.json(this.mapUser(user));
     }
 
     mapUser(user){
-        let result = {
+        const result = {
             id: user.id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            currencyCode: user.Currency.code,
+            currencyId: user.Currency.id,
+            currencyDescription: user.Currency.description,
+            currencySymbol: user.Currency.symbol,
         };
 
         if(user.isAdmin){
