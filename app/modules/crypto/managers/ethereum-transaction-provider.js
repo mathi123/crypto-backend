@@ -6,6 +6,7 @@ class EthereumTransactionProvider{
     constructor(configuration){
         this.apiKey = configuration.blockCypher.apiKey;
         this.okStatus = 1;
+        this.MaxTries = 5;
     }
 
     async getTransactionsForBlocks(coin, from, to){
@@ -23,22 +24,19 @@ class EthereumTransactionProvider{
         };
 
         let data = null;
+        let tries = 0;
 
-        try{
-            data = await theInternet(options);
-        }catch(Error){
-            if(data === null){
-                try{
-                    await sleep(50);
-                    data = await theInternet(options);
-                }catch(Error){
-                    logger.warn(`retry failed on url ${url}`);
-                }
+        while(tries < this.MaxTries && (data === null || data === undefined || data.result === null || data.result === undefined)){
+            try{
+                data = await theInternet(options);
+            }catch(Error){
+                logger.warn(`Error loading url: ${url}`);
+                await sleep(50)*(tries + 1);
             }
+            tries++;
         }
-
-        if(data === null || data === undefined || data.status != this.okStatus || data.result === null || data.result === undefined){
-            throw new Error('Could not get transactions for '+address);
+        if(data === null || data === undefined || data.result === null || data.result === undefined){
+            throw new Error('Could not get transactions.');
         }
 
         const weiToEther = Math.pow(10, coin.decimals);

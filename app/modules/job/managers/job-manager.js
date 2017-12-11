@@ -42,6 +42,7 @@ class JobManager{
 
         JobManager.queue.process('refreshPrices', 1, (job, done) => this.refreshPrices(job, done));
         JobManager.queue.process('createChainSyncJob', 1, (job, done) => this.syncChains(job, done));
+        JobManager.queue.process('importAccounts', 1, (job, done) => this.importAccounts(job, done));
     }
 
     queueRecurrentJobs(){
@@ -49,6 +50,7 @@ class JobManager{
 
         this.createRefreshPricesJob();
         this.createChainSyncJob();
+        this.checkImportingAccountsJob();
     }
 
     createRefreshPricesJob(){
@@ -61,6 +63,13 @@ class JobManager{
     createChainSyncJob(){
         JobManager.queue.create('createChainSyncJob', {})
             .delay(60000)
+            .attempts(5)
+            .save();
+    }
+
+    checkImportingAccountsJob(){
+        JobManager.queue.create('importAccounts', {})
+            .delay(10000)
             .attempts(5)
             .save();
     }
@@ -113,6 +122,59 @@ class JobManager{
         }catch(err){
             logger.warn(`Could not perform webrequest to ${url}`, err);
             job.state('failed').save();
+        }
+    }
+
+    async importAccounts(job, done){
+        logger.verbose('checking jobs with lingering imports', job.id);
+
+        const url = `${this.getRestApiUrl()}/api/account?state=importing`;
+        const options = {
+            uri: url,
+            json: true,
+            method: 'GET',
+            headers: {
+                'Authorization': await this.getToken(),
+            },
+        };
+
+        try{
+            const accounts = await theInternet(options);
+            const tenMinutesAgo = new Date(new Date().getTime() - 1000 * 60);
+
+            for(const account of accounts){
+                const updatedAt = new Date(account.updatedAt);
+
+                if(updatedAt < tenMinutesAgo){
+                    logger.verbose(`found the import of account with id ${account.id} to be hanging. Last update: ${account.updatedAt}.`);
+
+                    await this.importAccount(account.id);
+                }
+            }
+        }catch(err){
+            logger.warn(`Could not perform webrequest to ${url}`, err);
+            logger.warn('job failed');
+        }
+
+        done();
+        this.checkImportingAccountsJob();
+    }
+
+    async importAccount(id){
+        const url = `${this.getRestApiUrl()}/api/account/${id}/import`;
+        const options = {
+            uri: url,
+            json: true,
+            method: 'POST',
+            headers: {
+                'Authorization': await this.getToken(),
+            },
+        };
+
+        try{
+            await theInternet(options);
+        }catch(err){
+            logger.warn(`Could not perform webrequest to ${url}`, err);
         }
     }
 

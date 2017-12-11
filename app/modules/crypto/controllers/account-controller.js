@@ -18,12 +18,25 @@ class AccountController{
         app.delete(`${this.routePrefix }/:id`, (req, res, next) => this.remove(req, res).catch(next));
         app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
         app.put(`${this.routePrefix }/:id`, (req, res, next) => this.update(req, res).catch(next));
+        app.post(`${this.routePrefix }/:id/import`, (req, res, next) => this.import(req, res).catch(next));
     }
 
     async getAll(req, res) {
-        const records = await this.manager.getUserAccounts(req.userId);
+        const stateFilter = req.query.state;
 
-        res.json(records.map(u => this.exporter(u)));
+        if(stateFilter !== null && stateFilter !== undefined){
+            if(!req.isAdmin){
+                res.sendStatus(HttpStatus.UNAUTHORIZED);
+                return;
+            } else {
+                const records = await this.manager.getAccountsByStatus(stateFilter);
+                res.json(records.map(u => this.export(u, false)));
+            }
+        } else {
+            const records = await this.manager.getUserAccounts(req.userId);
+
+            res.json(records.map(u => this.export(u, true)));
+        }
     }
 
     async getById(req, res) {
@@ -33,7 +46,7 @@ class AccountController{
         if(record === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
         }else{
-            res.json(this.exporter(record));
+            res.json(this.export(record));
         }
     }
 
@@ -47,6 +60,26 @@ class AccountController{
             res.sendStatus(HttpStatus.NO_CONTENT);
         }catch(error){
             logger.error('could not update account');
+            res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    async import(req, res) {
+        if(!req.isAdmin){
+            res.sendStatus(HttpStatus.UNAUTHORIZED);
+            return;
+        }
+
+        const id = req.params.id;
+
+        try{
+            this.manager.loadTransactionsFireAndForget(id);
+
+            res.location(`/${this.routePrefix}/${ id }`);
+            res.sendStatus(HttpStatus.NO_CONTENT);
+        }catch(error){
+            logger.error('could not start import of account txns');
+            logger.error(error);
             res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -98,7 +131,7 @@ class AccountController{
         res.json(result);
     }
 
-    exporter(record) {
+    export(record, includeBalance) {
         const result = {
             id: record.id,
             coinId: record.coinId,
@@ -110,28 +143,31 @@ class AccountController{
             state: record.state,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
-            coinCode: record.coinCode,
-            coinDescription: record.coinDescription,
-            coinFileId: record.coinFileId,
-            balance: record.balance,
-            balanceOneHourAgo: record.balanceOneHourAgo,
-            balanceOneDayAgo: record.balanceOneDayAgo,
-            balanceOneWeekAgo: record.balanceOneWeekAgo,
-            balanceOneMonthAgo: record.balanceOneMonthAgo,
-            priceNow: record.priceNow,
-            priceNowTs: record.priceNowTs,
-            priceOneHour: record.priceOneHour,
-            priceOneDay: record.priceOneDay,
-            priceOneHourTs: record.priceOneHourTs,
-            priceLastWeek: record.priceLastWeek,
-            priceLastWeekTs: record.priceLastWeekTs,
-            priceLastMonth: record.priceLastMonth,
-            priceLastMonthTs: record.priceLastMonthTs,
-            txnCount: record.txnCount,
             _links : {
                 self: `${this.routePrefix}/${ record.id }`,
             },
         };
+
+        if(includeBalance){
+            result.coinCode = record.coinCode;
+            result.coinDescription = record.coinDescription;
+            result.coinFileId = record.coinFileId;
+            result.balance = record.balance;
+            result.balanceOneHourAgo = record.balanceOneHourAgo;
+            result.balanceOneDayAgo = record.balanceOneDayAgo;
+            result.balanceOneWeekAgo = record.balanceOneWeekAgo;
+            result.balanceOneMonthAgo = record.balanceOneMonthAgo;
+            result.priceNow = record.priceNow;
+            result.priceNowTs = record.priceNowTs;
+            result.priceOneHour = record.priceOneHour;
+            result.priceOneDay = record.priceOneDay;
+            result.priceOneHourTs = record.priceOneHourTs;
+            result.priceLastWeek = record.priceLastWeek;
+            result.priceLastWeekTs = record.priceLastWeekTs;
+            result.priceLastMonth = record.priceLastMonth;
+            result.priceLastMonthTs = record.priceLastMonthTs;
+            result.txnCount = record.txnCount;
+        }
 
         return result;
     }

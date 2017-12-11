@@ -2,13 +2,11 @@ const logger = require('../../../framework/logger');
 const models = require('../models');
 const uuid = require('uuid/v4');
 const CoinManager = require('./coin-manager');
-const AccountManager = require('./account-manager');
 const PriceManager = require('./price-manager');
 
 class TransactionManager{
     constructor(configuration){
         this.coinManager = new CoinManager(configuration);
-        this.accountManager = new AccountManager(configuration);
         this.priceManager = new PriceManager();
     }
 
@@ -59,7 +57,7 @@ class TransactionManager{
 
         const newTransactions = await this.merge(accountId, existingTransactions, transactions);
 
-        await this.accountManager.setState(accountId, 'done');
+        await this.setState(accountId, 'done');
 
         await this.loadPrices(coin, account, newTransactions.map(txn => txn.ts));
     }
@@ -78,8 +76,8 @@ class TransactionManager{
             const existing = existingTransactions.filter(e => e.transactionId === transaction.id)[0];
 
             if(existing === null || existing === undefined){
-                const transaction = await this.insertTransaction(accountId, transaction);
-                newTransactions.push(transaction);
+                const newTxn = await this.insertTransaction(accountId, transaction);
+                newTransactions.push(newTxn);
             }
         }
         return newTransactions;
@@ -97,7 +95,24 @@ class TransactionManager{
         };
 
         await models.Transaction.create(transaction);
+
+        await models.Account.update({ updatedAt: new Date() }, {
+            where: {
+                id: accountId,
+            },
+            fields: ['updatedAt'],
+        });
+
         return transaction;
+    }
+
+    async setState(accountId, state){
+        await models.Account.update({ state }, {
+            where: {
+                id: accountId,
+            },
+            fields: ['state'],
+        });
     }
 }
 

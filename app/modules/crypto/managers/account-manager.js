@@ -3,14 +3,28 @@ const models = require('../models');
 const CoinManager = require('./coin-manager');
 const sequelize = require('sequelize');
 const uuid = require('uuid/v4');
+const TransactionManager = require('./transaction-manager');
 
 class AccountManager{
     constructor(configuration){
         this.chainManager = new CoinManager(configuration);
+        this.transactionManager = new TransactionManager(configuration);
+    }
+
+    async getAccountsByStatus(stateFilter){
+        logger.verbose('getting all accounts');
+
+        const options = {
+            where:{
+                state: stateFilter,
+            },
+        };
+
+        const accounts = await models.Account.findAll(options);
+        return accounts;
     }
 
     async getUserAccounts(userId){
-        logger.verbose(userId.length);
         const now = new Date();
         const timestamp = now.getTime();
         const oneHour = Math.floor(new Date(timestamp - 3600 * 1000).getTime());
@@ -18,8 +32,6 @@ class AccountManager{
         const lastWeek = Math.floor(new Date(timestamp - 7 * 24 * 3600 * 1000).getTime());
         const oneMonth = Math.floor(new Date(timestamp - 30 * 24 * 3600 * 1000).getTime());
         const parameters = [timestamp, oneHour, lastWeek, oneMonth, userId, oneDay];
-
-        logger.verbose(JSON.stringify(parameters));
 
         const records = await sequelize.Current.query(`
         SELECT
@@ -289,7 +301,6 @@ class AccountManager{
 
       WHERE "Account"."userId" = $5`, { bind: parameters, type: sequelize.QueryTypes.SELECT });
 
-        logger.verbose(JSON.stringify(records));
         return records;
     }
 
@@ -314,15 +325,6 @@ class AccountManager{
         return await observer.getBalance(coin, address);
     }
 
-    async setState(accountId, state){
-        await models.Account.update({ state }, {
-            where: {
-                id: accountId,
-            },
-            fields: ['state'],
-        });
-    }
-
     async updateWithUserCheck(userId, id, data){
         const record = await models.Account.findOne({
             where: {
@@ -340,7 +342,7 @@ class AccountManager{
 
         // reload transactions but don't wait for the result
         if(record.address !== data.address && record.transactionType === 'auto'){
-            this.transactionManager.loadTransactions(record.id);
+            this.loadTransactionsFireAndForget(record.id);
         }
     }
 
@@ -392,10 +394,14 @@ class AccountManager{
 
         // load transactions but don't wait for the result
         if(record.transactionType === 'auto'){
-            this.transactionManager.loadTransactions(record.id);
+            this.loadTransactionsFireAndForget(record.id);
         }
 
         return record;
+    }
+
+    loadTransactionsFireAndForget(accountId){
+        this.transactionManager.loadTransactions(accountId);
     }
 }
 
