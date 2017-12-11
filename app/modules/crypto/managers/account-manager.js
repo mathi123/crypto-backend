@@ -34,8 +34,13 @@ class AccountManager{
         COALESCE(priceLastWeek.price, 0) AS priceLastWeek,
         priceLastWeek.ts as priceLastWeekTs,
         COALESCE(priceLastMonth.price, 0) AS priceLastMonth,
-        priceLastMonth.ts as priceLastMonthTs
+        priceLastMonth.ts as priceLastMonthTs,
+        coin."code" AS coinCode,
+        coin."fileId" AS coinFileId,
+        coin."description" AS coinDescription
       FROM "Account"
+        JOIN "Coin" coin 
+          ON coin."id" = "Account"."coinId"
         LEFT JOIN
         (
           SELECT

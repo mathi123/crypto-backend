@@ -7,7 +7,7 @@
     "username": "proxyuser",
     "password": "w47izFwg2KOIJEJh",
     "database": "postgres",
-    "host": "104.197.69.163",
+    "host": "35.184.145.152",
     "port": 5432,
     "dialect": "postgres",
     "logging": false
@@ -16,7 +16,7 @@
     "core",
     "crypto"
   ],
-  "ethereumApi": "http://127.0.0.1:8545",
+  "ethereumApi": "http://130.211.153.206:8545",
   "priceCheckInSeconds": 15,
   "secret": "KJ2kjJK32LKJA\\'/.SD[]",
   "blockCypher": {
