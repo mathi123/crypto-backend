@@ -99,10 +99,18 @@ class UserController {
             const values = {
                 name: userData.name,
                 email: userData.email,
-                coinId: userData.coinId
+                currencyId: userData.currencyId,
+                ...(userData.password ? {password: await this.userManager.hashPassword(userData.password)} : {})
             };
 
-            await models.User.update(values, {where: {id}, fields: ['name', 'email', 'coinId']});
+            const fields = [];
+            for (const property in values) {
+                if (values.hasOwnProperty(property)) {
+                    fields.push(property);
+                }
+            }
+
+            await models.User.update(values, {where: {id}, fields: fields});
 
             res.location(`/${this.routePrefix}/user/${ id }`);
             res.sendStatus(HttpStatus.NO_CONTENT);
@@ -112,11 +120,11 @@ class UserController {
     async createUser(req, res) {
         const userData = req.body;
 
-        try{
+        try {
             const user = await this.userManager.createUser(userData);
             res.location(`/${this.routePrefix}/user/${ user.id }`);
             res.sendStatus(HttpStatus.CREATED);
-        }catch(err){
+        } catch (err) {
             logger.error('could not create user', err);
             res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -143,6 +151,7 @@ class UserController {
             isAdmin: user.isAdmin,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
+            currencyId: user.currencyId,
             _links: {
                 self: `/${this.routePrefix}/user/${ user.id }`,
             },
