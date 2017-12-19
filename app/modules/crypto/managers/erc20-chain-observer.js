@@ -18,8 +18,8 @@ class Erc20ChainObserver {
     async getBalance(coin, address){
         const web3 = this.getWeb3();
         const contract = this.getContract(web3, coin.baseAddress);
-        const balance = await contract.balanceOf(address);
-        return balance;
+        const balance = await contract.methods.balanceOf(address).call();
+        return balance/Math.pow(10, coin.decimals);
     }
 
     getContract(web3, contractAddress){

@@ -60,7 +60,7 @@ class EthereumTransactionProvider{
             ts: rawTransaction.timeStamp * 1000,
             from: rawTransaction.from,
             to: rawTransaction.to,
-            value: rawTransaction.value / weiToEther,
+            amount: rawTransaction.value / weiToEther,
         };
 
         return result;

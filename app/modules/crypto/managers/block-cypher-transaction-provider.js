@@ -51,10 +51,10 @@ class BlockCypherTransactionProvider{
         const received = rawTransaction.outputs.filter(rec => rec.addresses.indexOf(address) >= 0).map(rec => rec.value).reduce((prev, curr) => prev + curr, 0)/ conversionFactor;
 
         if(received > 0){
-            transaction.value = received;
+            transaction.amount = received;
         }
         else{
-            transaction.value = -spent;
+            transaction.amount = -spent;
         }
 
         return transaction;

@@ -31,7 +31,7 @@ module.exports = function (seq, Sequelize) {
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
-            unique: 'erc20_Unique'
+            unique: 'erc20_Unique',
         },
         logIndex: {
             allowNull: false,
@@ -47,20 +47,33 @@ module.exports = function (seq, Sequelize) {
         },
         from: {
             allowNull: false,
-            type: Sequelize.STRING(100)
+            type: Sequelize.STRING(100),
         },
         to: {
             allowNull: false,
-            type: Sequelize.STRING(100)
+            type: Sequelize.STRING(100),
         },
         value:
         {
-            type: Sequelize.DECIMAL(50,20),
+            type: Sequelize.DECIMAL(50, 20),
             allowNull: false,
-        }
+        },
     }, {
         tableName: 'Erc20Transaction',
     });
+
+
+    Erc20Transaction.associate = function(models){
+        const EthereumBlock = models['crypto']['EthereumBlock'];
+
+        EthereumBlock.hasMany(Erc20Transaction, {
+            foreignKey: 'blockNumber',
+        });
+
+        Erc20Transaction.belongsTo(EthereumBlock, {
+            foreignKey: 'blockNumber',
+        });
+    };
 
     Erc20Transaction.addHook('beforeCreate', record => {
         if (record.id === null) {

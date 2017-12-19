@@ -60,9 +60,9 @@ class CoinController{
 
         const id = req.params.id;
         const record = await models.Coin.findOne({
-            where: { 
-                id: id 
-            }
+            where: {
+                id: id,
+            },
         });
 
         if(record === null){
@@ -97,12 +97,12 @@ class CoinController{
 
     async getAll(req, res) {
         const records = await models.Coin.findAll({
-            attributes: ['id', 
+            attributes: ['id',
                 'code',
-                'description', 
-                'isActive', 
-                'coinType', 
-                'baseAddress', 
+                'description',
+                'isActive',
+                'coinType',
+                'baseAddress',
                 'decimals',
                 'state',
                 'firstBlockSynchronized',
@@ -110,15 +110,16 @@ class CoinController{
                 'createdAt',
                 'updatedAt',
                 'fileId',
-                [sequelize.fn('COUNT', sequelize.col('Erc20Transactions.coinId')), 'transactionCount']
+                [sequelize.fn('COUNT', sequelize.col('Erc20Transactions.coinId')), 'transactionCount'],
             ],
             include: [{
-                model:models.Erc20Transaction ,
+                model:models.Erc20Transaction,
                 attributes: [],
                 duplicating: false,
-                required: false
-              }],
-              group: ['Coin.id']
+                required: false,
+            },
+            ],
+            group: ['Coin.id'],
         });
 
         res.json(records.map(u => this.exporter(u, req.isAdmin)));
@@ -132,9 +133,9 @@ class CoinController{
 
         const id = req.params.id;
         const record = await models.Coin.findOne({
-            where: { 
-                id: id 
-            }
+            where: {
+                id,
+            },
         });
 
         if(record === null){
@@ -153,9 +154,9 @@ class CoinController{
         const id = req.params.id;
         const data = req.body;
         const record = await models.Coin.findOne({
-            where: { 
-                id: id 
-            }
+            where: {
+                id,
+            },
         });
 
         if(record === null){
@@ -167,10 +168,15 @@ class CoinController{
                 isActive: data.isActive,
                 coinType: data.coinType,
                 baseAddress: data.baseAddress,
-                decimals: data.decimals
+                decimals: data.decimals,
             };
 
-            await models.Coin.update(values, { where: { id: id }, fields: ['code', 'description', 'isActive', 'coinType', 'baseAddress', 'decimals'] });
+            const options = {
+                where: { id },
+                fields: ['code', 'description', 'isActive', 'coinType', 'baseAddress', 'decimals'],
+            };
+
+            await models.Coin.update(values, options);
 
             res.location(`/${this.routePrefix}/${ id }`);
             res.sendStatus(HttpStatus.NO_CONTENT);
@@ -186,35 +192,34 @@ class CoinController{
         const id = req.params.id;
         const data = req.body.data;
         const coin = await models.Coin.findOne({
-            where: { 
-                id: id 
-            }
+            where: {
+                id: id,
+            },
         });
 
         if(coin === null){
             res.sendStatus(HttpStatus.NOT_FOUND);
         }else{
-            console.info(data);
             if(coin.fileId === null || coin.fileId === undefined){
                 coin.fileId = uuid();
                 await models.File.create({
                     id: coin.fileId,
-                    data: data
+                    data: data,
                 });
                 await coin.update({
-                    fileId: coin.fileId
+                    fileId: coin.fileId,
                 }, {
                     where: {
-                        id: coin.id
-                    }
+                        id: coin.id,
+                    },
                 });
             }else{
                 await models.File.update({
-                    data: data
+                    data: data,
                 }, {
                     where: {
-                        id: coin.fileId
-                    }
+                        id: coin.fileId,
+                    },
                 });
             }
 
@@ -233,11 +238,11 @@ class CoinController{
             isActive: data.isActive,
             coinType: data.coinType,
             baseAddress: data.baseAddress,
-            decimals: data.decimals
+            decimals: data.decimals,
         };
 
         await models.Coin.create(coin);
-      
+
         res.location(`${this.routePrefix}/${ coin.id }`);
         res.sendStatus(HttpStatus.CREATED);
     }
@@ -245,15 +250,15 @@ class CoinController{
     async remove(req, res) {
         if(!req.isAdmin){
             res.sendStatus(HttpStatus.UNAUTHORIZED);
-            return; 
+            return;
         }
 
         const id = req.params.id;
 
         await models.Coin.destroy({
-            where: { 
-                id: id 
-            }
+            where: {
+                id: id,
+            },
         });
 
         res.sendStatus(HttpStatus.NO_CONTENT);
@@ -265,7 +270,7 @@ class CoinController{
             code: record.code,
             description: record.description,
             fileId: record.fileId,
-            _links: {}
+            _links: {},
         };
 
         if(record.fileId !== null){

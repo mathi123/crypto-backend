@@ -4,11 +4,13 @@ const CoinManager = require('./coin-manager');
 const sequelize = require('sequelize');
 const uuid = require('uuid/v4');
 const TransactionManager = require('./transaction-manager');
+const AccountColorManager = require('./account-color-manager');
 
 class AccountManager{
     constructor(configuration){
         this.chainManager = new CoinManager(configuration);
         this.transactionManager = new TransactionManager(configuration);
+        this.colorManager = new AccountColorManager();
     }
 
     async getAccountsByStatus(stateFilter){
@@ -299,7 +301,8 @@ class AccountManager{
             ) priceLastMonth
             ON "Account"."coinId" = priceLastMonth."coinId"
 
-      WHERE "Account"."userId" = $5`, { bind: parameters, type: sequelize.QueryTypes.SELECT });
+      WHERE "Account"."userId" = $5
+      ORDER BY "Account"."description" ASC, "Account"."createdAt" ASC`, { bind: parameters, type: sequelize.QueryTypes.SELECT });
 
         return records;
     }
@@ -354,6 +357,7 @@ class AccountManager{
             note: data.note,
             transactionType: data.transactionType,
         };
+
         const updateOptions = {
             where: { id },
             fields: ['description', 'color', 'address', 'note', 'transactionType'],
@@ -388,6 +392,10 @@ class AccountManager{
             record.state = 'importing';
         }else{
             record.state = 'new';
+        }
+
+        if(record.color === null || record.color === undefined){
+            record.color = (await this.colorManager.getNextColor(userId)).code;
         }
 
         await models.Account.create(record);

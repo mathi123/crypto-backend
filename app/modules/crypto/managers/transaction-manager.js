@@ -91,7 +91,7 @@ class TransactionManager{
             id: uuid(),
             transactionId: data.id,
             ts: data.ts,
-            amount: data.value,
+            amount: data.amount,
         };
 
         await models.Transaction.create(transaction);

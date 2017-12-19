@@ -3,22 +3,30 @@ const HttpStatus = require('http-status-codes');
 const AccountManager = require('../managers/account-manager');
 const TransactionManager = require('../managers/transaction-manager');
 const logger = require('../../../framework/logger');
+const AccountColorManager = require('../managers/account-color-manager');
 
 class AccountController{
     constructor(configuration){
         this.routePrefix = `/${configuration.routePrefix}/account`;
         this.manager = new AccountManager(configuration);
         this.transactionManager = new TransactionManager(configuration);
+        this.colorManager = new AccountColorManager();
     }
 
     buildAuthenticatedRoutes(app) {
         app.get(this.routePrefix, (req, res, next) => this.getAll(req, res).catch(next));
         app.get(`${this.routePrefix}/validate`, (req, res, next) => this.validate(req, res).catch(next));
         app.get(`${this.routePrefix }/:id`, (req, res, next) => this.getById(req, res).catch(next));
+        app.get(`${this.routePrefix}-color`, (req, res, next) => this.getColors(req, res).catch(next));
         app.delete(`${this.routePrefix }/:id`, (req, res, next) => this.remove(req, res).catch(next));
         app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
         app.put(`${this.routePrefix }/:id`, (req, res, next) => this.update(req, res).catch(next));
         app.post(`${this.routePrefix }/:id/import`, (req, res, next) => this.import(req, res).catch(next));
+    }
+
+    async getColors(req, res){
+        const colors = this.colorManager.getAllColors();
+        res.json(colors);
     }
 
     async getAll(req, res) {

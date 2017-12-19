@@ -4,13 +4,13 @@ const Web3 = require('web3');
 const uuid = require('uuid/v4');
 const models = require('../models');
 
-class Erc20TransactionProvider{
+class Erc20TransactionProvider {
 
-    constructor(configuration){
+    constructor(configuration) {
         this.apiUrl = configuration.ethereumApi;
     }
 
-    async getTransactionsForBlocks(coin, from, to){
+    async getTransactionsForBlocks(coin, from, to) {
         logger.verbose(`getting ${coin.description} transactions in blocks ${from} > ${to}`);
         const web3 = this.getWeb3();
         const contract = this.getContract(web3, coin.baseAddress);
@@ -22,15 +22,24 @@ class Erc20TransactionProvider{
         return transferEvents.map(txn => this.mapEventToTransaction(txn, coin));
     }
 
-    async getTransactionsForAddress(coin, address){
-        return await models.Erc20Transaction.findAll({
+    async getTransactionsForAddress(coin, address) {
+        logger.verbose(`getting transactions for ${coin.description}`);
+        const results = [];
+        const transactions = await models.Erc20Transaction.findAll({
             where: {
-                'or': [
+                $and : [
                     {
-                        from: address,
+                        coinId: coin.id,
                     },
                     {
-                        to: address,
+                        $or: [
+                            {
+                                from: address,
+                            },
+                            {
+                                to: address,
+                            },
+                        ],
                     },
                 ],
             },
@@ -40,9 +49,23 @@ class Erc20TransactionProvider{
                 },
             ],
         });
+
+        for (const txn of transactions) {
+            const result = {
+                id: uuid(),
+                transactionId: txn.transactionHash,
+                amount: (txn.from === address ? -1 : 1) * txn.value,
+                ts: txn.EthereumBlock.ts * 1000,
+                counterParty: txn.from == address ? txn.to : txn.from,
+            };
+
+            results.push(result);
+        }
+
+        return results;
     }
 
-    mapEventToTransaction(eventData, coin){
+    mapEventToTransaction(eventData, coin) {
         return {
             id: uuid(),
             coinId: coin.id,
@@ -53,22 +76,22 @@ class Erc20TransactionProvider{
             isRemoved: eventData.removed,
             from: eventData.returnValues._from,
             to: eventData.returnValues._to,
-            value: eventData.returnValues._value / Math.pow(10, coin.decimals),
+            amount: eventData.returnValues._value / Math.pow(10, coin.decimals),
         };
     }
 
-    getContract(web3, contractAddress){
+    getContract(web3, contractAddress) {
         return new web3.eth.Contract(erc20, contractAddress);
     }
 
-    getWeb3(){
-        if(this.web3 === undefined){
+    getWeb3() {
+        if (this.web3 === undefined) {
             this.web3 = this.buildWeb3();
         }
         return this.web3;
     }
 
-    buildWeb3(){
+    buildWeb3() {
         logger.verbose(`getting web3 js connection from ${this.apiUrl}`);
         return new Web3(new Web3.providers.HttpProvider(this.apiUrl));
     }
