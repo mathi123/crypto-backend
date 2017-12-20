@@ -135,7 +135,7 @@ class TransactionController{
         const result = {
             id: record.id,
             transactionId: record.transactionId,
-            ts: record.ts,
+            date: record.date,
             amount: record.amount,
             note: record.note,
             createdAt: record.createdAt,

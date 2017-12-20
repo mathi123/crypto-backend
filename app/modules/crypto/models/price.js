@@ -8,10 +8,15 @@ module.exports = function (seq, Sequelize) {
             primaryKey: true,
             allowNull: false,
         },
-        ts: {
-            type: Sequelize.BIGINT,
+        date: {
+            type: Sequelize.DATE,
             allowNull: false,
-            unique: 'uniquePerTimestamp'
+            unique: 'uniquePerTimestamp',
+        },
+        isDayPrice: {
+            type: Sequelize.BOOLEAN(),
+            defaultValue: false,
+            allowNull: false,
         },
         coinId: {
             allowNull: false,
@@ -22,7 +27,7 @@ module.exports = function (seq, Sequelize) {
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
-            unique: 'uniquePerTimestamp'
+            unique: 'uniquePerTimestamp',
         },
         currencyId: {
             allowNull: false,
@@ -33,10 +38,10 @@ module.exports = function (seq, Sequelize) {
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
-            unique: 'uniquePerTimestamp'
+            unique: 'uniquePerTimestamp',
         },
         price:{
-            type: Sequelize.DECIMAL(50,20),
+            type: Sequelize.DECIMAL(50, 20),
         },
     }, {
         tableName: 'Price',

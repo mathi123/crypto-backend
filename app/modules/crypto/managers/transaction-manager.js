@@ -16,7 +16,7 @@ class TransactionManager{
                 accountId,
             },
             order: [
-                ['ts', 'DESC'],
+                ['date', 'DESC'],
             ],
         });
     }
@@ -59,7 +59,7 @@ class TransactionManager{
 
         await this.setState(accountId, 'done');
 
-        await this.loadPrices(coin, account, newTransactions.map(txn => txn.ts));
+        await this.loadPrices(coin, account, newTransactions.map(txn => txn.date));
     }
 
     async loadPrices(coin, account, timestamps){
@@ -90,7 +90,7 @@ class TransactionManager{
             accountId,
             id: uuid(),
             transactionId: data.id,
-            ts: data.ts,
+            date: data.date,
             amount: data.amount,
         };
 

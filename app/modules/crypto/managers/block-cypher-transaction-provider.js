@@ -45,7 +45,7 @@ class BlockCypherTransactionProvider{
         const transaction = {};
 
         transaction.id = rawTransaction.hash;
-        transaction.ts = new Date(rawTransaction.confirmed).getTime();
+        transaction.date = new Date(rawTransaction.confirmed);
 
         const spent = rawTransaction.inputs.filter(rec => rec.addresses.indexOf(address) >= 0).map(rec => rec.output_value).reduce((prev, curr) => prev + curr, 0) / conversionFactor;
         const received = rawTransaction.outputs.filter(rec => rec.addresses.indexOf(address) >= 0).map(rec => rec.value).reduce((prev, curr) => prev + curr, 0)/ conversionFactor;

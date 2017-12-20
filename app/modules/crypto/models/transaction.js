@@ -22,9 +22,10 @@ module.exports = function (seq, Sequelize) {
             allowNull: false,
             type: Sequelize.STRING(100)
         },
-        ts: {
-            type: Sequelize.BIGINT,
+        date: {
+            type: Sequelize.DATE,
             allowNull: false,
+            unique: 'uniquePerTimestamp',
         },
         amount:{
             type: Sequelize.DECIMAL(50,20),

@@ -175,6 +175,7 @@ class AccountController{
             result.priceLastMonth = record.priceLastMonth;
             result.priceLastMonthTs = record.priceLastMonthTs;
             result.txnCount = record.txnCount;
+            result.priceDiff = record.priceDiff;
         }
 
         return result;

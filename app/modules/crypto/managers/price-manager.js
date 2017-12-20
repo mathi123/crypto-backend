@@ -9,6 +9,10 @@ class PriceManager{
     constructor(){
     }
 
+    async getMissingHistoricalTimestamps(coin, currency){
+
+    }
+
     async getPrices(fromDate, toDate, coins, currencies, maxReq, extraTs){
         if(toDate < fromDate){
             throw new Error('toDate < fromDate');
@@ -23,13 +27,12 @@ class PriceManager{
 
         for(var i = 0;i<requests;i++)
         {
-            const d = new Date(fromDate.getTime() + i * step);
-            const ts = d.getTime();
-            dates.push(ts);
+            const date = new Date(fromDate.getTime() + i * step);
+            dates.push(date);
         }
 
-        if(toDate.getTime() !== dates[dates.length - 1]){
-            dates.push(toDate.getTime());
+        if(toDate !== dates[dates.length - 1]){
+            dates.push(toDate);
         }
 
         const sorted = dates.sort((x, y) => x - y);
@@ -64,15 +67,16 @@ class PriceManager{
 
         for(var i = 0;i<dates.length;i++)
         {
-            const ts = dates[i];
-            const transaction = await this.getPriceForDateAndCurrency(ts, coin, currency);
+            const date = dates[i];
+            const transaction = await this.getPriceForDateAndCurrency(date, coin, currency);
             results.push(transaction);
         }
 
         return results;
     }
 
-    async getPriceForDateAndCurrency(serverTs, coin, currency){
+    async getPriceForDateAndCurrency(date, coin, currency){
+        const serverTs = date.getTime();
         logger.verbose(`getting price for ${coin.description} on timestamp ${serverTs}`);
         const url = `https://min-api.cryptocompare.com/data/pricehistorical?fsym=${coin.code}&tsyms=${currency.code}&ts=${serverTs}&extraParams=tstapp`;
 
@@ -116,28 +120,28 @@ class PriceManager{
             where: {
                 currencyId,
                 coinId,
-                ts: timestamp,
+                date: timestamp,
             },
         });
 
         return price;
     }
 
-    async savePrice(currencyId, coinId, timestamp, price){
+    async savePrice(currencyId, coinId, date, price){
         const record = {
             id: uuid(),
             currencyId,
             coinId,
             price,
-            ts: timestamp,
+            date,
         };
 
         await models.Price.create(record);
     }
 
-    formatResultData(ts, coin, currency, data){
+    formatResultData(date, coin, currency, data){
         return {
-            ts,
+            date,
             price: data[coin.code][currency.code],
         };
     }

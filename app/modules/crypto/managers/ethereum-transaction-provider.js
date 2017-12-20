@@ -57,7 +57,7 @@ class EthereumTransactionProvider{
     formatResultData(rawTransaction, weiToEther){
         var result = {
             id: rawTransaction.hash,
-            ts: rawTransaction.timeStamp * 1000,
+            date: new Date(rawTransaction.timeStamp * 1000),
             from: rawTransaction.from,
             to: rawTransaction.to,
             amount: rawTransaction.value / weiToEther,

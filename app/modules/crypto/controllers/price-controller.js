@@ -22,7 +22,7 @@ class PriceController{
         }
 
         res.sendStatus(HttpStatus.ACCEPTED);
-
+/*
         const date = new Date();
         date.setSeconds(0, 0);
         const unixTs = date.getTime();
@@ -47,7 +47,7 @@ class PriceController{
             await this.jobManager.setDone(req.userId, jobId);
         }else{
             logger.verbose('no jobId passed in query params');
-        }
+        }*/
     }
 }
 

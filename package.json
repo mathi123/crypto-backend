@@ -24,6 +24,7 @@
     "jsonwebtoken": "^7.3.0",
     "kue": "^0.11.6",
     "kue-scheduler": "^0.7.4",
+    "moment": "^2.20.1",
     "pg": "^6.1.5",
     "pg-hstore": "^2.3.2",
     "request": "^2.81.0",
