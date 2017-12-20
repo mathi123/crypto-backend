@@ -45,7 +45,7 @@ class EthereumTransactionProvider{
             const formatted = this.formatResultData(element, weiToEther);
 
             if(element.to.toLowerCase() !== address.toLowerCase()){
-                formatted.value = -formatted.value;
+                formatted.amount = -formatted.amount;
             }
 
             transactions.push(formatted);

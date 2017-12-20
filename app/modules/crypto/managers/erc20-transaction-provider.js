@@ -54,7 +54,7 @@ class Erc20TransactionProvider {
             const result = {
                 id: uuid(),
                 transactionId: txn.transactionHash,
-                amount: (txn.from === address ? -1 : 1) * txn.value,
+                amount: (txn.from == address ? -1 : 1) * txn.value,
                 date: new Date(txn.EthereumBlock.ts * 1000),
                 counterParty: txn.from == address ? txn.to : txn.from,
             };

@@ -76,11 +76,11 @@ class PriceManager{
     }
 
     async getPriceForDateAndCurrency(date, coin, currency){
-        const serverTs = date.getTime();
+        const serverTs = Math.round(date.getTime()/1000);
         logger.verbose(`getting price for ${coin.description} on timestamp ${serverTs}`);
         const url = `https://min-api.cryptocompare.com/data/pricehistorical?fsym=${coin.code}&tsyms=${currency.code}&ts=${serverTs}&extraParams=tstapp`;
 
-        const cached = await this.getCachedPrice(currency.id, coin.id, serverTs);
+        const cached = await this.getCachedPrice(currency.id, coin.id, date);
         if(cached !== null){
             return cached;
         }
@@ -109,8 +109,8 @@ class PriceManager{
             throw new Error('Could not get price.');
         }
 
-        const price = this.formatResultData(serverTs, coin, currency, data);
-        await this.savePrice(currency.id, coin.id, serverTs, price.price);
+        const price = this.formatResultData(date, coin, currency, data);
+        await this.savePrice(currency.id, coin.id, date, price.price);
 
         return price;
     }

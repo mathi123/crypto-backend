@@ -63,11 +63,28 @@ class TransactionManager{
     }
 
     async loadPrices(coin, account, timestamps){
-        logger.verbose(`loading prices for ${timestamps.length} timestamps`);
+        const dates = [];
+
+        for(const timestamp of timestamps) {
+            const date = new Date(timestamp.getUTCFullYear(), timestamp.getUTCMonth(), timestamp.getUTCDay(), 12, 0, 0);
+            if(!this.containsDate(dates, date)){
+                dates.push(date);
+            }
+        }
+
+        logger.verbose(`loading prices for ${dates.length} timestamps`);
         const currencies = await models.Currency.findAll();
         for(const currency of currencies){
-            await this.priceManager.getPricesForDateArray(timestamps, coin, currency);
+            await this.priceManager.getPricesForDateArray(dates, coin, currency);
         }
+    }
+    containsDate(dates, dateToAdd){
+        for(const date of dates){
+            if(date.getTime() === dateToAdd.getTime()){
+                return true;
+            }
+        }
+        return false;
     }
 
     async merge(accountId, existingTransactions, transactions){

@@ -156,6 +156,12 @@ class AccountController{
             },
         };
 
+        if(record.Coin !== undefined){
+            result.coinDescription = record.Coin.description;
+            result.coinCode = record.Coin.code;
+            result.coinFileId = record.Coin.fileId;
+        }
+
         if(includeBalance){
             result.coinCode = record.coinCode;
             result.coinDescription = record.coinDescription;

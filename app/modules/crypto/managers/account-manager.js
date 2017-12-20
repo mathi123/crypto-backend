@@ -314,6 +314,11 @@ class AccountManager{
                 id,
                 userId,
             },
+            include: [
+                {
+                    model: models.Coin,
+                },
+            ],
         });
     }
 
