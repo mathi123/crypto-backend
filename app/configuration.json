@@ -20,7 +20,8 @@
   "priceCheckInSeconds": 15,
   "secret": "KJ2kjJK32LKJA\\'/.SD[]",
   "blockCypher": {
-    "apiKey": "1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E"
+    "apiKey": "1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E",
+    "token": "97b0ae763a1a458cba33c9aee108c794"
   },
   "jobApi": "http://localhost:3001"
 }

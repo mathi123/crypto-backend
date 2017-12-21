@@ -104,7 +104,7 @@ class CoinManager{
     getChainObserver(coin){
         logger.verbose(`getting chain observer for ${coin.description}`);
         if(coin.code === 'BTC' || coin.code === 'LTC' || coin.code === 'DOGE'){
-            return new BlockCypherChainObserver();
+            return new BlockCypherChainObserver(this.configuration);
         }else if(coin.code === 'ETH'){
             return new EthereumChainObserver(this.configuration);
         }else if(coin.coinType === 'erc20contract'){
@@ -116,7 +116,7 @@ class CoinManager{
 
     getTransactionProvider(coin){
         if(coin.code === 'BTC' || coin.code === 'LTC' || coin.code === 'DOGE'){
-            return new BlockCypherTransactionProvider();
+            return new BlockCypherTransactionProvider(this.configuration);
         }else if(coin.code === 'ETH'){
             return new EthereumTransactionProvider(this.configuration);
         }else if(coin.coinType === 'erc20contract'){

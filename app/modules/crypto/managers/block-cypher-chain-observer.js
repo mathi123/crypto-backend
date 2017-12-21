@@ -3,13 +3,14 @@ const theInternet = require('request-promise-native');
 const sleep = require('sleep-promise');
 
 class BlockCypherChainObserver {
-    constructor(){
+    constructor(configuration){
+        this.token = configuration.blockCypher.token;
         this.MaxTries = 5;
     }
 
     async getLastBlock(coin){
         logger.verbose(`Getting latest block for ${coin.description}.`);
-        const url = `https://api.blockcypher.com/v1/${coin.code.toLowerCase()}/main`;
+        const url = `https://api.blockcypher.com/v1/${coin.code.toLowerCase()}/main?token=${this.token}`;
         const options = {
             uri: url,
             json: true,
@@ -37,7 +38,7 @@ class BlockCypherChainObserver {
     }
 
     async getBalance(coin, address){
-        const url = `http://api.blockcypher.com/v1/${coin.code.toLowerCase()}/main/addrs/${address}`;
+        const url = `http://api.blockcypher.com/v1/${coin.code.toLowerCase()}/main/addrs/${address}?token=${this.token}`;
 
         const options = {
             uri: url,
