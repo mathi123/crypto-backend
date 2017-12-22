@@ -12,34 +12,20 @@ class PriceController{
     }
 
     buildAuthenticatedRoutes(app) {
-        app.post(`${this.routePrefix }`, (req, res, next) => this.create(req, res).catch(next));
+        app.post(`${this.routePrefix }/historic`, (req, res, next) => this.createHistoricPrices(req, res).catch(next));
+        app.post(`${this.routePrefix }/current`, (req, res, next) => this.createCurrentPrices(req, res).catch(next));
     }
 
-    async create(req, res){
+    async createHistoricPrices(req, res){
         if(!req.isAdmin){
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
         }
 
-        // const coinId = req.query.coinId;
-        // const currencyId = req.query.currencyId;
-        //const from = req.query.from;
-        //const to = req.query.to;
         const jobId = req.query.jobId;
 
-        const fromDate = new Date(2016, 1, 1);
+        const fromDate = new Date(2015, 1, 1);
         const toDate = new Date();
-        // const coin = await models.Coin.findOne({
-        //     where: {
-        //         id: coinId,
-        //     },
-        // });
-
-        // const currency = await models.Currency.findOne({
-        //     where: {
-        //         id: currencyId,
-        //     },
-        // });
 
         logger.verbose(`completing prices from ${fromDate} untill ${toDate}`);
         logger.verbose(`job id = ${jobId}`);
@@ -60,7 +46,7 @@ class PriceController{
             },
         });
 
-        await this.priceManager.getPricesForCurrencies(dates, coins, currencies);
+        await this.priceManager.getHistoricalPricesForCurrencies(dates, coins, currencies);
 
         if(jobId !== undefined && jobId != null){
             logger.verbose(`calling done on job ${jobId}`);
@@ -70,17 +56,13 @@ class PriceController{
         }
     }
 
-    /*async create(req, res){
+    async createCurrentPrices(req, res){
         if(!req.isAdmin){
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
         }
 
         res.sendStatus(HttpStatus.ACCEPTED);
-/*
-        const date = new Date();
-        date.setSeconds(0, 0);
-        const unixTs = date.getTime();
 
         try{
             const currencies = await models.Currency.findAll();
@@ -90,8 +72,8 @@ class PriceController{
                 },
             });
 
-            await this.priceManager.getPricesForCurrencies([unixTs], coins, currencies);
-            logger.verbose('done with price refresh');
+            await this.priceManager.getCurrentPricesForCurrencies(coins, currencies);
+            logger.verbose('done with current price refresh');
         }catch(err){
             logger.error('Could not refresh prices', JSON.stringify(err));
         }
@@ -103,7 +85,7 @@ class PriceController{
         }else{
             logger.verbose('no jobId passed in query params');
         }
-    }*/
+    }
 }
 
 module.exports = PriceController;

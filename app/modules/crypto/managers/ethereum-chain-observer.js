@@ -28,6 +28,10 @@ class EthereumChainObserver {
         return result.currentBlock;
     }
 
+    isValid(coin, address){
+        return /^(0x)?[0-9a-f]{40}$/i.test(address);
+    }
+
     // Todo: use Web3js
     async getBalance(coin, address){
         logger.verbose(`getting balance for ${address}`);

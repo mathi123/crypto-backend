@@ -37,6 +37,11 @@ class BlockCypherChainObserver {
         return data.height;
     }
 
+
+    isValid(coin, address){
+        return /^[13][a-zA-Z0-9]{27,34}/.test(address);
+    }
+
     async getBalance(coin, address){
         const url = `http://api.blockcypher.com/v1/${coin.code.toLowerCase()}/main/addrs/${address}?token=${this.token}`;
 

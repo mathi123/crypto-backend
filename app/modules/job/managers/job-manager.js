@@ -40,7 +40,8 @@ class JobManager{
     subscribeProcessors(){
         logger.verbose('subscribe processors');
 
-        JobManager.queue.process('refreshPrices', 1, (job, done) => this.refreshPrices(job, done));
+        JobManager.queue.process('refreshHistoricPrices', 1, (job, done) => this.refreshHistoricPrices(job, done));
+        JobManager.queue.process('refreshCurrentPrices', 1, (job, done) => this.refreshCurrentPrices(job, done));
         JobManager.queue.process('createChainSyncJob', 1, (job, done) => this.syncChains(job, done));
         JobManager.queue.process('importAccounts', 1, (job, done) => this.importAccounts(job, done));
     }
@@ -48,41 +49,84 @@ class JobManager{
     queueRecurrentJobs(){
         logger.info('queue recurrent jobs');
 
-        this.createRefreshPricesJob();
-        this.createChainSyncJob();
-        this.checkImportingAccountsJob();
+        if(this.configuration.jobs.refreshHistoricPrices.isActive){
+            this.createrefreshHistoricPricesJob();
+        }
+        if(this.configuration.jobs.refreshCurrentPrices.isActive){
+            this.createrefreshCurrentPricesJob();
+        }
+        if(this.configuration.jobs.createChainSyncJob.isActive){
+            this.createChainSyncJob();
+        }
+        if(this.configuration.jobs.importAccounts.isActive){
+            this.checkImportingAccountsJob();
+        }
     }
 
-    createRefreshPricesJob(){
-        JobManager.queue.create('refreshPrices', {})
-            .delay(60000)
+    createrefreshHistoricPricesJob(){
+        JobManager.queue.create('refreshHistoricPrices', {})
+            .delay(this.configuration.jobs.refreshHistoricPrices.timeout)
             .attempts(5)
             .save();
     }
 
+    createrefreshCurrentPricesJob(){
+        JobManager.queue.create('refreshCurrentPrices', {})
+            .delay(this.configuration.jobs.refreshCurrentPrices.timeout)
+            .attempts(5)
+            .save();
+
+    }
+
     createChainSyncJob(){
         JobManager.queue.create('createChainSyncJob', {})
-            .delay(60000)
+            .delay(this.configuration.jobs.createChainSyncJob.timeout)
             .attempts(5)
             .save();
     }
 
     checkImportingAccountsJob(){
         JobManager.queue.create('importAccounts', {})
-            .delay(10000)
+            .delay(this.configuration.jobs.importAccounts.timeout)
             .attempts(5)
             .save();
     }
 
-    async refreshPrices(job, done){
+    async refreshHistoricPrices(job, done){
         logger.verbose('executing refresh prices', job.id);
         JobManager.runningJobs[job.id] = {
             setDone: () => done(),
-            requeue: () => this.createRefreshPricesJob(),
+            requeue: () => this.createrefreshHistoricPricesJob(),
         };
 
 
-        const url = `${this.getRestApiUrl()}/api/price?jobId=${job.id}`;
+        const url = `${this.getRestApiUrl()}/api/price/historic?jobId=${job.id}`;
+        const options = {
+            uri: url,
+            json: true,
+            method: 'POST',
+            headers: {
+                'Authorization': await this.getToken(),
+            },
+        };
+
+        try{
+            await theInternet(options);
+        }catch(err){
+            logger.warn(`Could not perform webrequest to ${url}`, err);
+            job.state('failed').save();
+        }
+    }
+
+    async refreshCurrentPrices(job, done){
+        logger.verbose('executing refresh current prices', job.id);
+        JobManager.runningJobs[job.id] = {
+            setDone: () => done(),
+            requeue: () => this.createrefreshCurrentPricesJob(),
+        };
+
+
+        const url = `${this.getRestApiUrl()}/api/price/current?jobId=${job.id}`;
         const options = {
             uri: url,
             json: true,

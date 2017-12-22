@@ -75,7 +75,7 @@ class TransactionManager{
         logger.verbose(`loading prices for ${dates.length} timestamps`);
         const currencies = await models.Currency.findAll();
         for(const currency of currencies){
-            await this.priceManager.getPricesForDateArray(dates, coin, currency);
+            await this.priceManager.getHistoricalPrices(dates, coin, currency);
         }
     }
     containsDate(dates, dateToAdd){

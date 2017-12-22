@@ -15,6 +15,10 @@ class Erc20ChainObserver {
         return lastBlock;
     }
 
+    isValid(coin, address){
+        return /^(0x)?[0-9a-f]{40}$/i.test(address);
+    }
+
     async getBalance(coin, address){
         const web3 = this.getWeb3();
         const contract = this.getContract(web3, coin.baseAddress);

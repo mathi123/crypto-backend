@@ -126,14 +126,11 @@ class AccountController{
     async validate(req, res) {
         const result = {};
         try{
-            const balance = await this.manager.getBalance(req.query.coinId, req.query.address);
-            result.isValid = true;
-            result.balance = balance;
+            result.isValid = await this.manager.isValidAddress(req.query.coinId, req.query.address);
         }catch(err){
             logger.warn(`invalid address: ${req.query.address}`);
             logger.error(err);
             result.isValid = false;
-            result.balance = NaN;
         }
 
         res.json(result);
