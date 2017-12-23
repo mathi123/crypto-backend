@@ -39,7 +39,11 @@ class BlockCypherChainObserver {
 
 
     isValid(coin, address){
-        return /^[13][a-zA-Z0-9]{27,34}/.test(address);
+        if(coin.code === 'BTC'){
+            return /^[13][a-zA-Z0-9]{27,34}/.test(address);
+        }else if(coin.code === 'LTC'){
+            return /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$/.test(address);
+        }
     }
 
     async getBalance(coin, address){
