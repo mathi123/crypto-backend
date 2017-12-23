@@ -100,7 +100,7 @@ class UserController {
                 name: userData.name,
                 email: userData.email,
                 currencyId: userData.currencyId,
-                ...(userData.password ? {password: await this.userManager.hashPassword(userData.password)} : {})
+                //...(userData.password ? {password: await this.userManager.hashPassword(userData.password)} : {})
             };
 
             const fields = [];
