@@ -23,7 +23,7 @@ class ContextController{
                 },
             ],
         });
-console.log(JSON.stringify(user));
+
         res.json(this.mapUser(user));
     }
 

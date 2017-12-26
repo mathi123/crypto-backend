@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const HttpStatus = require('http-status-codes');
 const cors = require('cors');
+const https = require('https');
+const fs = require('fs');
 
 class Server {
     constructor(configuration) {
@@ -21,8 +23,18 @@ class Server {
     start() {
         logger.info('starting server');
         this.buildFallbackRoute();
+        const privateKey = fs.readFileSync(this.configuration.https.keyPath).toString();
+        const certificate = fs.readFileSync(this.configuration.https.certPath).toString();
 
-        this.server = this.app.listen(this.port, () => logger.info('listening on port ' + this.port));
+        // this.server = this.app.listen(this.port, () => logger.info('listening on port ' + this.port));
+        const options = {
+            key: privateKey,
+            cert: certificate,
+            passphrase: this.configuration.https.passphrase,
+        };
+
+        this.server = https.createServer(options, this.app)
+            .listen(this.port, () => logger.info('listening on port ' + this.port));
 
         if(this.configuration.runIoOnStartUp){
             logger.info('attaching IO socket to server');

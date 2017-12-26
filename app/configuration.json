@@ -1,5 +1,5 @@
 {
-  "port": 3000,
+  "port": 3443,
   "routePrefix": "api",
   "runMigrationsOnStartUp": true,
   "runJobrunnerOnStartup": false,
@@ -16,6 +16,11 @@
     "core",
     "crypto"
   ],
+  "https": {
+    "keyPath": "./app/certificates/key.pem",
+    "certPath": "./app/certificates/cert.pem",
+    "passphrase": "mitasco"
+  },
   "ethereumApi": "http://130.211.153.206:8545",
   "priceCheckInSeconds": 15,
   "secret": "KJ2kjJK32LKJA\\'/.SD[]",
@@ -23,5 +28,5 @@
     "apiKey": "1GDDAY45D73RIY89C3EAY9QDVT7MSKB21E",
     "token": "97b0ae763a1a458cba33c9aee108c794"
   },
-  "jobApi": "http://localhost:3001"
+  "jobApi": "https://localhost:3001"
 }

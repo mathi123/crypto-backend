@@ -16,6 +16,10 @@
     "core",
     "crypto"
   ],
+  "https": {
+    "keyPath": "./app/certificates/cryptofolio_net.key",
+    "certPath": "./app/certificates/cryptofolio_net.crt"
+  },
   "ethereumApi": "http://10.55.245.196:8545",
   "priceCheckInSeconds": 120,
   "secret": "KJ2kjJK32LKJA\\'/.SD[]",
