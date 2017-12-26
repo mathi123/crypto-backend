@@ -32,7 +32,7 @@
     "port": 6379
   },
   "jobManagerEmail": "jobmanager",
-  "restApi": "https://localhost:3000",
+  "restApi": "https://localhost:3443",
   "jobs": {
     "refreshHistoricPrices": {
       "timeout": 60000,
@@ -40,11 +40,11 @@
     },
     "refreshCurrentPrices": {
       "timeout": 7000,
-      "isActive": true
+      "isActive": false
     },
     "createChainSyncJob": {
       "timeout": 60000,
-      "isActive": false
+      "isActive": true
     },
     "importAccounts": {
       "timeout": 1000,
