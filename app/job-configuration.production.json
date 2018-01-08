@@ -32,6 +32,7 @@
     "port": 6379
   },
   "jobManagerEmail": "jobmanager",
+  "restApi": "https://api.cryptofolio.net:3000",
   "jobs": {
     "refreshHistoricPrices": {
       "timeout": 60000,
